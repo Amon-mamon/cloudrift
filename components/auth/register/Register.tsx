@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { CustomButton } from "@/components/reusable/button/CustomButton";
+import FormInput from "@/components/reusable/input/FormInput";
 
 // interface RegisterProps {
 //   open: boolean;
@@ -112,52 +113,14 @@ const Register = () => {
             <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
               {/* Name row */}
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-medium text-white/40 mb-1.5 tracking-wide">
-                    First name
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Juan"
-                    className="w-full bg-white/4 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-[#e8edf5] placeholder-white/20 outline-none focus:border-blue-500/50 focus:bg-white/6 transition-colors"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-medium text-white/40 mb-1.5 tracking-wide">
-                    Last name
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="dela Cruz"
-                    className="w-full bg-white/43 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-[#e8edf5] placeholder-white/20 outline-none focus:border-blue-500/50 focus:bg-white/6 transition-colors"
-                  />
-                </div>
+                <FormInput placeholder="John" label="Firstname" className="w-full  border border-white/10 rounded-lg px-3 py-2.5 text-sm text-[#e8edf5] placeholder-white/20 outline-none focus:border-blue-500/50 focus:bg-white/6 transition-colors" validation="required"/>
+                <FormInput placeholder="John" label="Lastname" className="w-full  border border-white/10 rounded-lg px-3 py-2.5 text-sm text-[#e8edf5] placeholder-white/20 outline-none focus:border-blue-500/50 focus:bg-white/6 transition-colors" validation="required"/>
               </div>
-
               {/* Email */}
-              <div>
-                <label className="block text-[11px] font-medium text-white/40 mb-1.5 tracking-wide">
-                  Email address
-                </label>
-                <input
-                  type="email"
-                  placeholder="you@email.com"
-                  className="w-full bg-white/4 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-[#e8edf5] placeholder-white/20 outline-none focus:border-blue-500/50 focus:bg-white/6 transition-colors"
-                />
-              </div>
-
+                <FormInput placeholder="test@gmail.com" label="Email" className="w-full  border border-white/10 rounded-lg px-3 py-2.5 text-sm text-[#e8edf5] placeholder-white/20 outline-none focus:border-blue-500/50 focus:bg-white/6 transition-colors" validation="required"/>
               {/* Password */}
               <div>
-                <label className="block text-[11px] font-medium text-white/40 mb-1.5 tracking-wide">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  placeholder="Min. 8 characters"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-white/4 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-[#e8edf5] placeholder-white/20 outline-none focus:border-blue-500/50 focus:bg-white/6 transition-colors"
-                />
+                <FormInput onChange={(e) => setPassword(e.target.value)} type="password" placeholder="test@gmail.com" label="Password" className="w-full  border border-white/10 rounded-lg px-3 py-2.5 text-sm text-[#e8edf5] placeholder-white/20 outline-none focus:border-blue-500/50 focus:bg-white/6 transition-colors" validation="required"/>
                 {/* Strength bars */}
                 <div className="flex gap-1 mt-2">
                   {[1, 2, 3, 4].map((i) => (
@@ -168,26 +131,16 @@ const Register = () => {
                   ))}
                 </div>
               </div>
-
               {/* Confirm password */}
-              <div>
-                <label className="block text-[11px] font-medium text-white/40 mb-1.5 tracking-wide">
-                  Confirm password
-                </label>
-                <input
-                  type="password"
-                  placeholder="Repeat password"
-                  className="w-full bg-white/4 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-[#e8edf5] placeholder-white/20 outline-none focus:border-blue-500/50 focus:bg-white/6 transition-colors"
-                />
-              </div>
-
+                <FormInput  type="password" placeholder="test@gmail.com" label="Confirm Password" className="w-full  border border-white/10 rounded-lg px-3 py-2.5 text-sm text-[#e8edf5] placeholder-white/20 outline-none focus:border-blue-500/50 focus:bg-white/6 transition-colors" validation="required"/>
+                  <div className="w-full flex text-center">
+                    <Link href="/auth/login"
+                      className="w-full bg-blue-600 hover:bg-blue-500 transition-colors text-white font-medium text-sm py-3 rounded-xl mt-1"
+                    >
+                      Create account
+                    </Link>
+                  </div>
               {/* Submit */}
-              <button
-                type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-500 transition-colors text-white font-medium text-sm py-3 rounded-xl mt-1"
-              >
-                Create account
-              </button>
 
               {/* Divider */}
               <div className="flex items-center gap-3 py-1">
