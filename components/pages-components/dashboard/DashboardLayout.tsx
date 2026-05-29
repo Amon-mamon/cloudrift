@@ -15,8 +15,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Main content shifts based on sidebar width */}
       <main
-        className={`transition-all duration-300 ease-in-out pt-18.25 ${
-          collapsed ? "ml-15" : "ml-56"
+        className={`transition-all duration-300 ease-in-out pt-18.25 ml-15 ${
+          collapsed ? "lg:ml-15" : "lg:ml-56"
         }`}
       >
         {children}

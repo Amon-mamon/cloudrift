@@ -1,5 +1,7 @@
 "use client";
 
+import { CustomButton } from "@/components/reusable/button/CustomButton";
+import Link from "next/link";
 import { useState } from "react";
 
 const MOCK_USER = {
@@ -22,10 +24,11 @@ const Header = () => {
         CloudRift
       </div>
 
+
       {/* Right side */}
       <div className="flex items-center gap-3">
         {/* Notification */}
-        <button className="relative w-9 h-9 flex items-center justify-center rounded-xl bg-white/3 hover:bg-white/6 border border-white/[0.07] hover:border-white/12 text-white/35 hover:text-white/60 transition-all">
+        <CustomButton tooltip="Notification" className="relative w-9 h-9 flex items-center justify-center rounded-xl bg-white/3 hover:bg-white/6 border border-white/[0.07] hover:border-white/12 text-white/35 hover:text-white/60 transition-all">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="15"
@@ -41,10 +44,10 @@ const Header = () => {
             <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
           </svg>
           <span className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-blue-400" />
-        </button>
+        </CustomButton>
 
         {/* Upload CTA — matches hero primary button style */}
-        <button className="hidden sm:flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 transition-all hover:-translate-y-0.5 text-white text-sm font-medium px-4 py-2 rounded-xl">
+        {/* <CustomButton tooltip="Upload" className="hidden sm:flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 transition-all hover:-translate-y-0.5 text-white text-sm font-medium px-4 py-2 rounded-xl">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="13"
@@ -61,11 +64,11 @@ const Header = () => {
             <path d="m16 16-4-4-4 4" />
           </svg>
           Upload
-        </button>
+        </CustomButton> */}
 
         {/* Profile */}
         <div className="relative">
-          <button
+          <CustomButton tooltip="Profile"
             onClick={() => setDropdownOpen(!dropdownOpen)}
             className="flex items-center gap-2.5 bg-white/3 hover:bg-white/6 border border-white/[0.07] hover:border-white/12 rounded-xl px-3 py-2 transition-all"
           >
@@ -89,7 +92,7 @@ const Header = () => {
             >
               <path d="m6 9 6 6 6-6" />
             </svg>
-          </button>
+          </CustomButton>
 
           {dropdownOpen && (
             <>
@@ -177,22 +180,20 @@ const Header = () => {
                       accent: true,
                     },
                   ].map((item) => (
-                    <button
+                    <CustomButton
+                     tooltip={""} 
                       key={item.label}
-                      className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-xs transition-colors text-left ${
-                        item.accent
+                      className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-xs transition-colors text-left ${item.accent
                           ? "text-blue-400 hover:bg-blue-500/8"
-                          : "text-white/45 hover:text-white/75 hover:bg-white/4"
-                      }`}
-                    >
+                          : "text-white/45 hover:text-white/75 hover:bg-white/4"}`}                   >
                       {item.icon}
                       {item.label}
-                    </button>
+                    </CustomButton>
                   ))}
                 </div>
 
                 <div className="border-t border-white/[0.07] py-1.5">
-                  <button className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/6 transition-colors text-left">
+                  <Link href="/auth/login" className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/6 transition-colors text-left">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="13"
@@ -209,7 +210,7 @@ const Header = () => {
                       <line x1="21" x2="9" y1="12" y2="12" />
                     </svg>
                     Sign out
-                  </button>
+                  </Link>
                 </div>
               </div>
             </>

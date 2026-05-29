@@ -1,7 +1,13 @@
 "use client";
 
+import { CustomButton } from "@/components/reusable/button/CustomButton";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useState } from "react";
+const MuiTooltip = dynamic(() => import("@mui/material/Tooltip"));
+
+
+
 
 const NAV_ITEMS = [
   {
@@ -50,7 +56,7 @@ const Sidebar =({ collapsed, onToggle }: DashboardSidebarProps) =>  {
     <>
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-18.25 bottom-0 bg-[#070b14]/90 backdrop-blur-xl border-r border-white/[0.07] flex flex-col z-20 overflow-y-auto overflow-x-hidden transition-all duration-300 ease-in-out ${
+        className={`fixed left-0  top-18.25 bottom-0 bg-[#070b14]/90 backdrop-blur-xl border-r border-white/[0.07] flex flex-col z-20 overflow-y-auto overflow-x-hidden transition-all duration-300 ease-in-out ${
           collapsed ? "w-15" : "w-56"
         }`}
       >
@@ -64,9 +70,9 @@ const Sidebar =({ collapsed, onToggle }: DashboardSidebarProps) =>  {
           }}
         />
 
-        {/* Toggle button — sits at top of sidebar */}
+        {/* Toggle CustomButton — sits at top of sidebar */}
         <div className="relative flex items-center justify-end px-3 pt-4 pb-2">
-          <button
+          <CustomButton tooltip="Toggle Sidebar"
             onClick={onToggle}
             className="w-7 h-7 flex items-center justify-center rounded-lg bg-white/4 hover:bg-white/8 border border-white/8 hover:border-white/[0.14] text-white/30 hover:text-white/60 transition-all"
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
@@ -78,7 +84,7 @@ const Sidebar =({ collapsed, onToggle }: DashboardSidebarProps) =>  {
             >
               <path d="m15 18-6-6 6-6"/>
             </svg>
-          </button>
+          </CustomButton>
         </div>
 
         {/* Nav */}
@@ -91,10 +97,10 @@ const Sidebar =({ collapsed, onToggle }: DashboardSidebarProps) =>  {
           {NAV_ITEMS.map((item) => {
             const isActive = active === item.label;
             return (
-              <Link href={item.path}
+             <MuiTooltip key={item.label} title={!collapsed ? item.label : ""}>
+               <Link href={item.path}
                 key={item.label}
                 onClick={() => setActive(item.label)}
-                title={collapsed ? item.label : undefined}
                 className={`w-full flex items-center gap-3 rounded-xl font-medium transition-all text-left group ${
                   collapsed ? "justify-center px-0 py-2.5" : "justify-between px-3 py-2.5"
                 } ${
@@ -117,6 +123,7 @@ const Sidebar =({ collapsed, onToggle }: DashboardSidebarProps) =>  {
                   </span>
                 )}
               </Link>
+             </MuiTooltip>
             );
           })}
 
@@ -127,7 +134,7 @@ const Sidebar =({ collapsed, onToggle }: DashboardSidebarProps) =>  {
                 Recent
               </p>
               {RECENT_FILES.map((file) => (
-                <button
+                <CustomButton tooltip="Recent Files"
                   key={file.name}
                   className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left hover:bg-white/4 transition-colors group"
                 >
@@ -137,7 +144,7 @@ const Sidebar =({ collapsed, onToggle }: DashboardSidebarProps) =>  {
                   <span className="text-xs text-white/30 group-hover:text-white/55 truncate transition-colors">
                     {file.name}
                   </span>
-                </button>
+                </CustomButton>
               ))}
             </div>
           )}
@@ -146,14 +153,14 @@ const Sidebar =({ collapsed, onToggle }: DashboardSidebarProps) =>  {
         {/* Storage — collapsed shows just icon */}
         <div className="relative p-2">
           {collapsed ? (
-            <button
+            <CustomButton tooltip="Storage"
               title="Storage: 4.2 / 10 GB"
               className="w-full flex items-center justify-center py-2.5 rounded-xl bg-white/3 border border-white/8 hover:border-blue-500/25 hover:bg-blue-500/6 transition-all group"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white/30 group-hover:text-blue-400 transition-colors">
                 <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
               </svg>
-            </button>
+            </CustomButton>
           ) : (
             <div className="bg-white/3 border border-white/8 rounded-xl p-3.5 hover:border-white/12 transition-all">
               <div className="flex items-center justify-between mb-2">
@@ -163,9 +170,9 @@ const Sidebar =({ collapsed, onToggle }: DashboardSidebarProps) =>  {
               <div className="h-1 bg-white/8 rounded-full overflow-hidden mb-3">
                 <div className="h-full w-[42%] bg-blue-500 rounded-full" />
               </div>
-              <button className="w-full text-[10px] font-medium text-blue-400 hover:text-blue-300 bg-blue-500/8 hover:bg-blue-500/[0.14] border border-blue-500/20 rounded-lg py-1.5 transition-all">
+              <CustomButton  tooltip="Upgrade Storage" className="w-full text-[10px] font-medium text-blue-400 hover:text-blue-300 bg-blue-500/8 hover:bg-blue-500/[0.14] border border-blue-500/20 rounded-lg py-1.5 transition-all">
                 Upgrade storage ↑
-              </button>
+              </CustomButton>
             </div>
           )}
         </div>

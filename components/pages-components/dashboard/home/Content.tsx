@@ -1,5 +1,7 @@
 "use client";
 
+import { CustomButton } from "@/components/reusable/button/CustomButton";
+
 const STATS = [
   {
     label: "Total Files",
@@ -51,7 +53,7 @@ const AI_ACTIVITY = [
 
 const Content = () => {
   return (
-    <div className="pt-18.25 min-h-screen bg-[#070b14] text-[#e8edf5] font-sans w-full">
+    <div className="min-h-screen bg-[#070b14] text-[#e8edf5] font-sans w-full pt-4">
 
       {/* Background — same orbs + grid as hero */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden z-0 w-full">
@@ -69,12 +71,11 @@ const Content = () => {
       </div>
 
       <div className="relative z-10 p-8">
-
         {/* Page header */}
         <div className="flex items-start justify-between mb-8 w-full">
           <div>
             <h1
-              className="text-3xl font-extrabold text-[#f0f4fa] tracking-[-1px] mb-1"
+              className="text-4xl font-extrabold text-[#f0f4fa] tracking-[-1px] mb-1"
               style={{ fontFamily: "'Syne', sans-serif" }}
             >
               Good morning, Juan 👋
@@ -85,12 +86,14 @@ const Content = () => {
           </div>
 
           {/* Upload — matches hero primary CTA exactly */}
-          <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 transition-all hover:-translate-y-0.5 text-white font-medium px-5 py-2.5 rounded-xl text-sm">
+          <CustomButton tooltip="Upload" className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 transition-all hover:-translate-y-0.5 text-white font-medium px-5 py-2.5 rounded-xl text-sm">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/>
             </svg>
+            <span className="hidden sm:block">
             Upload file
-          </button>
+            </span>
+          </CustomButton>
         </div>
 
         {/* Stat cards — same card style as hero stats */}
@@ -204,9 +207,9 @@ const Content = () => {
                 ))}
               </div>
               {/* Matches hero secondary button */}
-              <button className="w-full text-[11px] font-medium text-blue-400 hover:text-blue-300 bg-blue-500/8 hover:bg-blue-500/[0.14] border border-blue-500/20 rounded-xl py-2 transition-all">
+              <CustomButton tooltip="Uprade" className="w-full text-[11px] font-medium text-blue-400 hover:text-blue-300 bg-blue-500/8 hover:bg-blue-500/[0.14] border border-blue-500/20 rounded-xl py-2 transition-all">
                 Upgrade to Pro ↑
-              </button>
+              </CustomButton>
             </div>
 
             {/* AI Activity — uses hero AI badge colors */}
@@ -242,9 +245,9 @@ const Content = () => {
               <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/>
             </svg>
           </div>
-          <div className="text-sm font-medium text-white/35 group-hover:text-white/55 transition-colors">
+          <CustomButton tooltip="Upload a File" className="text-sm font-medium text-white/35 group-hover:text-white/55 transition-colors">
             Drop files here to upload
-          </div>
+          </CustomButton>
           <div className="text-[11px] text-white/20">or click to browse — any file type supported</div>
         </div>
       </div>

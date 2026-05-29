@@ -2,27 +2,20 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { CustomButton } from "@/components/reusable/button/CustomButton";
 import FormInput from "@/components/reusable/input/FormInput";
-
-// interface RegisterProps {
-//   open: boolean;
-//   onClose: () => void;
-// }
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { registerSchema, RegisterSchema } from "@/components/schema/schema";
 
 const Register = () => {
   const [password, setPassword] = useState("");
-
-//   useEffect(() => {
-//     if (open) {
-//       document.body.style.overflow = "hidden";
-//     } else {
-//       document.body.style.overflow = "";
-//     }
-//     return () => {
-//       document.body.style.overflow = "";
-//     };
-//   }, [open]);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterSchema>({
+    resolver: zodResolver(registerSchema),
+  });
 
   const getStrength = (pw: string) => {
     if (pw.length === 0) return 0;
@@ -41,6 +34,12 @@ const Register = () => {
     return "bg-emerald-500";
   };
 
+  function onSubmit(data: RegisterSchema) {
+    console.log({
+      name: data.first_name,
+      email: data.email,
+    });
+  }
   return (
     <div
       onClick={(e) => e.stopPropagation()}
@@ -109,18 +108,47 @@ const Register = () => {
                 Sign in
               </Link>
             </p>
-
-            <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+            <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
               {/* Name row */}
               <div className="grid grid-cols-2 gap-3">
-                <FormInput placeholder="John" label="Firstname" className="w-full  border border-white/10 rounded-lg px-3 py-2.5 text-sm text-[#e8edf5] placeholder-white/20 outline-none focus:border-blue-500/50 focus:bg-white/6 transition-colors" validation="required"/>
-                <FormInput placeholder="John" label="Lastname" className="w-full  border border-white/10 rounded-lg px-3 py-2.5 text-sm text-[#e8edf5] placeholder-white/20 outline-none focus:border-blue-500/50 focus:bg-white/6 transition-colors" validation="required"/>
+                <FormInput
+                  error={errors.first_name}
+                  {...register("first_name")}
+                  placeholder="John"
+                  label="Firstname"
+                  className={`w-full border rounded-lg px-3 py-2.5 text-sm text-[#e8edf5] placeholder-white/20 outline-none transition-colors ${errors.first_name ? "border-red-500" : "border border-white/10 focus:border-blue-500/50 focus:bg-white/6  "}`}
+                  validation="required"
+                />
+                <FormInput
+                  error={errors.last_name}
+                  {...register("last_name")}
+                  placeholder="John"
+                  label="Lastname"
+                  className={`w-full border rounded-lg px-3 py-2.5 text-sm text-[#e8edf5] placeholder-white/20 outline-none transition-colors ${errors.last_name ? "border-red-500" : "border border-white/10 focus:border-blue-500/50 focus:bg-white/6  "}`}
+                  validation="required"
+                />
               </div>
               {/* Email */}
-                <FormInput placeholder="test@gmail.com" label="Email" className="w-full  border border-white/10 rounded-lg px-3 py-2.5 text-sm text-[#e8edf5] placeholder-white/20 outline-none focus:border-blue-500/50 focus:bg-white/6 transition-colors" validation="required"/>
+              <FormInput
+                error={errors.email}
+                {...register("email")}
+                placeholder="test@gmail.com"
+                label="Email"
+                className={`w-full border rounded-lg px-3 py-2.5 text-sm text-[#e8edf5] placeholder-white/20 outline-none  transition-colors ${errors.email ? "border-red-500" : " border-white/10 focus:border-blue-500/50 focus:bg-white/6"}`}
+                validation="required"
+              />
               {/* Password */}
               <div>
-                <FormInput onChange={(e) => setPassword(e.target.value)} type="password" placeholder="test@gmail.com" label="Password" className="w-full  border border-white/10 rounded-lg px-3 py-2.5 text-sm text-[#e8edf5] placeholder-white/20 outline-none focus:border-blue-500/50 focus:bg-white/6 transition-colors" validation="required"/>
+                <FormInput
+                  error={errors.password}
+                  {...register("password")}
+                  onChange={(e) => setPassword(e.target.value)}
+                  type="password"
+                  placeholder="test@gmail.com"
+                  label="Password"
+                  className="w-full  border border-white/10 rounded-lg px-3 py-2.5 text-sm text-[#e8edf5] placeholder-white/20 outline-none focus:border-blue-500/50 focus:bg-white/6 transition-colors"
+                  validation="required"
+                />
                 {/* Strength bars */}
                 <div className="flex gap-1 mt-2">
                   {[1, 2, 3, 4].map((i) => (
@@ -132,14 +160,32 @@ const Register = () => {
                 </div>
               </div>
               {/* Confirm password */}
-                <FormInput  type="password" placeholder="test@gmail.com" label="Confirm Password" className="w-full  border border-white/10 rounded-lg px-3 py-2.5 text-sm text-[#e8edf5] placeholder-white/20 outline-none focus:border-blue-500/50 focus:bg-white/6 transition-colors" validation="required"/>
-                  <div className="w-full flex text-center">
-                    <Link href="/auth/login"
-                      className="w-full bg-blue-600 hover:bg-blue-500 transition-colors text-white font-medium text-sm py-3 rounded-xl mt-1"
-                    >
-                      Create account
-                    </Link>
-                  </div>
+              <FormInput
+                error={errors.confirm_password}
+                {...register("confirm_password")}
+                type="password"
+                placeholder="test@gmail.com"
+                label="Confirm Password"
+                className={`w-full border  rounded-lg px-3 py-2.5 text-sm text-[#e8edf5] placeholder-white/20 outline-none transition-colors ${errors.confirm_password ? "border-red-500" : "border border-white/10 focus:border-blue-500/50 focus:bg-white/6 "}`}
+                validation="required"
+              />
+              {/* <div className="w-full flex text-center">
+                <Link
+                  href="/"
+                  className="w-full bg-blue-600 hover:bg-blue-500 transition-colors text-white font-medium text-sm py-3 rounded-xl mt-1"
+                >
+                  Create account
+                </Link>
+              </div> */}
+              <div className="w-full flex text-center">
+                <button
+                  type="submit"
+                  onClick={() => console.log("Submitted Successfully")}
+                  className="w-full bg-blue-600 hover:bg-blue-500 transition-colors text-white font-medium text-sm py-3 rounded-xl mt-1"
+                >
+                  Submit
+                </button>
+              </div>
               {/* Submit */}
 
               {/* Divider */}

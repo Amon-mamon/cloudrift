@@ -101,7 +101,7 @@ const Login = () => {
             {/* Submit */}
             <div className="w-full flex text-center">
               <Link
-                href="/user/dashboard"
+                href="/dashboard/"
                 type="submit"
                 className="w-full bg-blue-600 hover:bg-blue-500 transition-colors text-white font-medium text-sm py-3 rounded-xl"
               >
