@@ -1,4 +1,4 @@
-import Content from '@/components/pages-components/dashboard/drive/Content'
+import Content from '@/components/pages-components/dashboard/apiAccess/Content'
 import React from 'react'
 
 const page = () => {
