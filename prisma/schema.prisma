@@ -1,0 +1,125 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @db.Uuid
+  email     String   @unique
+  firstName String
+  lastName  String
+  provider  String   @default("supabase")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projects     Project[]
+  files        DbFile[]
+  activityLogs ActivityLog[]
+  ownedShares  FileShare[]   @relation("OwnedFileShares")
+  receivedShares FileShare[] @relation("ReceivedFileShares")
+}
+
+enum DbFileType {
+  SQL
+  DB
+  CSV
+  JSON
+  DUMP
+  ENV
+  SQLITE
+  OTHER
+}
+
+enum FileSharePermission {
+  FULL_ACCESS
+  READ_ONLY
+}
+
+enum ActivityAction {
+  UPLOAD
+  DOWNLOAD
+  SHARE
+  DELETE
+  AI
+  ACCESS
+  CREATE
+  UPDATE
+}
+
+model Project {
+  id        String   @id @default(uuid()) @db.Uuid
+  ownerId   String   @db.Uuid
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  name      String
+  engine    String?
+  color     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  files DbFile[]
+
+  @@index([ownerId])
+}
+
+model DbFile {
+  id         String     @id @default(uuid()) @db.Uuid
+  ownerId    String     @db.Uuid
+  owner      User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  projectId  String?    @db.Uuid
+  project    Project?   @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  name       String
+  type       DbFileType @default(OTHER)
+  sizeBytes  BigInt?
+  engine     String?
+  aiAnalyzed Boolean    @default(false)
+  storagePath String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  shares       FileShare[]
+  activityLogs ActivityLog[]
+
+  @@index([ownerId])
+  @@index([projectId])
+}
+
+model FileShare {
+  id               String              @id @default(uuid()) @db.Uuid
+  fileId           String              @db.Uuid
+  file             DbFile              @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  ownerId          String              @db.Uuid
+  owner            User                @relation("OwnedFileShares", fields: [ownerId], references: [id], onDelete: Cascade)
+  sharedWithUserId String?             @db.Uuid
+  sharedWithUser   User?               @relation("ReceivedFileShares", fields: [sharedWithUserId], references: [id], onDelete: Cascade)
+  sharedWithEmail  String
+  permission       FileSharePermission @default(READ_ONLY)
+  createdAt        DateTime            @default(now())
+
+  @@index([ownerId])
+  @@index([sharedWithUserId])
+  @@unique([fileId, sharedWithEmail])
+}
+
+model ActivityLog {
+  id          String         @id @default(uuid()) @db.Uuid
+  ownerId     String         @db.Uuid
+  owner       User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  fileId      String?        @db.Uuid
+  file        DbFile?        @relation(fields: [fileId], references: [id], onDelete: SetNull)
+  action      ActivityAction
+  description String
+  ipAddress   String?
+  createdAt   DateTime       @default(now())
+
+  @@index([ownerId])
+  @@index([fileId])
+}

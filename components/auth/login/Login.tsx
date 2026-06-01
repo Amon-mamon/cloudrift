@@ -1,9 +1,155 @@
 "use client";
 
 import FormInput from "@/components/reusable/input/FormInput";
+import { loginSchema, LoginSchema } from "@/components/schema/schema";
+import { supabase } from "@/lib/supabase";
+import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+
+type LoginResponse = {
+  error?: string;
+  code?: string;
+  message?: string;
+  session?: {
+    access_token?: string;
+    refresh_token?: string;
+  };
+};
 
 const Login = () => {
+  const router = useRouter();
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
+  const [confirmationEmail, setConfirmationEmail] = useState("");
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
+  const [isResending, setIsResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginSchema>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+
+    const timer = window.setInterval(() => {
+      setResendCooldown((current) => Math.max(0, current - 1));
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [resendCooldown]);
+
+  async function onSubmit(data: LoginSchema) {
+    setSubmitError(null);
+    setNeedsConfirmation(false);
+    setResendMessage(null);
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = (await response.json()) as LoginResponse;
+
+      if (!response.ok) {
+        const message = result.error || "Unable to sign in. Please try again.";
+        const isEmailNotConfirmed =
+          result.code === "email_not_confirmed" ||
+          message.toLowerCase().includes("email not confirmed");
+
+        if (isEmailNotConfirmed) {
+          setNeedsConfirmation(true);
+          setConfirmationEmail(data.email);
+          setSubmitError(
+            "Confirm your email before signing in. Check your inbox or resend the confirmation link."
+          );
+          return;
+        }
+
+        throw new Error(message);
+      }
+
+      if (!result.session?.access_token || !result.session.refresh_token) {
+        throw new Error("Unable to start your session. Please try again.");
+      }
+
+      const { error } = await supabase.auth.setSession({
+        access_token: result.session.access_token,
+        refresh_token: result.session.refresh_token,
+      });
+
+      if (error) {
+        throw new Error(error.message || "Unable to start your session.");
+      }
+
+      router.push("/dashboard");
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error ? error.message : "Unable to sign in."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleResendConfirmation() {
+    if (!confirmationEmail || resendCooldown > 0) return;
+
+    setSubmitError(null);
+    setResendMessage(null);
+    setIsResending(true);
+
+    try {
+      const response = await fetch("/api/auth/resend-confirmation", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: confirmationEmail }),
+      });
+
+      const result = (await response.json()) as LoginResponse;
+
+      if (!response.ok) {
+        if (result.code === "email_rate_limit_exceeded") {
+          setResendCooldown(60);
+          throw new Error(
+            "Email rate limit exceeded. Wait a bit before trying again, or use the latest confirmation email already in your inbox."
+          );
+        }
+
+        throw new Error(
+          result.error || "Unable to resend confirmation email."
+        );
+      }
+
+      setResendMessage(
+        result.message || "Confirmation email sent. Check your inbox."
+      );
+      setResendCooldown(60);
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "Unable to resend confirmation email."
+      );
+    } finally {
+      setIsResending(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#070b14] flex items-center justify-center px-4 py-12 font-sans">
       {/* Background orbs */}
@@ -68,23 +214,55 @@ const Login = () => {
             </Link>
           </p>
 
-          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+          <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+            {submitError && (
+              <p className="text-sm text-red-400 text-center">{submitError}</p>
+            )}
+            {needsConfirmation && (
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={handleResendConfirmation}
+                  disabled={isResending || resendCooldown > 0}
+                  className="w-full border border-blue-500/25 bg-blue-500/10 hover:bg-blue-500/[0.16] text-blue-300 transition-colors text-xs font-medium py-2.5 rounded-xl disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isResending && "Sending confirmation..."}
+                  {!isResending &&
+                    resendCooldown > 0 &&
+                    `Try again in ${resendCooldown}s`}
+                  {!isResending &&
+                    resendCooldown === 0 &&
+                    "Resend confirmation email"}
+                </button>
+                {resendMessage && (
+                  <p className="text-xs text-emerald-400 text-center">
+                    {resendMessage}
+                  </p>
+                )}
+              </div>
+            )}
             <div className="flex flex-col">
               {/* Email */}
               <div className="mt-2">
                 <FormInput
-                  placeholder="test@gmail.com"
+                  error={errors.email}
+                  {...register("email")}
+                  type="email"
+                  placeholder="you@example.com"
                   label="Email"
-                  className="w-full border border-white/10 rounded-lg px-3 py-2.5 text-sm text-[#e8edf5] placeholder-white/20 outline-none focus:border-blue-500/50 focus:bg-white/6 transition-colors"
+                  className={`w-full border rounded-lg px-3 py-2.5 text-sm text-[#e8edf5] placeholder-white/20 outline-none transition-colors ${errors.email ? "border-red-500" : "border-white/10 focus:border-blue-500/50 focus:bg-white/6"}`}
                   validation="required"
                 />
               </div>
               {/* Password */}
               <div className="mt-2">
                 <FormInput
-                  placeholder="test@gmail.com"
+                  error={errors.password}
+                  {...register("password")}
+                  type="password"
+                  placeholder="Your password"
                   label="Password"
-                  className="w-full border border-white/10 rounded-lg px-3 py-2.5 text-sm text-[#e8edf5] placeholder-white/20 outline-none focus:border-blue-500/50 focus:bg-white/6 transition-colors"
+                  className={`w-full border rounded-lg px-3 py-2.5 text-sm text-[#e8edf5] placeholder-white/20 outline-none transition-colors ${errors.password ? "border-red-500" : "border-white/10 focus:border-blue-500/50 focus:bg-white/6"}`}
                   validation="required"
                 />
               </div>
@@ -100,19 +278,19 @@ const Login = () => {
 
             {/* Submit */}
             <div className="w-full flex text-center">
-              <Link
-                href="/dashboard/"
+              <button
                 type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-500 transition-colors text-white font-medium text-sm py-3 rounded-xl"
+                disabled={isSubmitting}
+                className="w-full bg-blue-600 hover:bg-blue-500 transition-colors text-white font-medium text-sm py-3 rounded-xl disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Sign in
-              </Link>
+                {isSubmitting ? "Signing in..." : "Sign in"}
+              </button>
             </div>
 
             {/* Divider */}
             <div className="flex items-center gap-3 py-1">
               <div className="flex-1 h-px bg-white/[0.07]" />
-              <span className="text-[11px] text-white/25">or</span>c
+              <span className="text-[11px] text-white/25">or</span>
               <div className="flex-1 h-px bg-white/[0.07]" />
             </div>
 

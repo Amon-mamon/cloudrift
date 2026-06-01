@@ -1,6 +1,10 @@
 "use client";
 
 import { CustomButton } from "@/components/reusable/button/CustomButton";
+import { authFetch } from "@/lib/auth-fetch";
+import { supabase } from "@/lib/supabase";
+import type { User } from "@supabase/supabase-js";
+import { useEffect, useMemo, useState } from "react";
 
 const STATS = [
   {
@@ -37,21 +41,194 @@ const STATS = [
   },
 ];
 
-const RECENT_FILES = [
-  { name: "Q3_Report_2025.pdf",   ext: "PDF", size: "2.4 MB", modified: "2 hours ago",  iconColor: "bg-red-500/10 text-red-400",     ai: true  },
-  { name: "design_mockups.png",   ext: "IMG", size: "1.1 MB", modified: "5 hours ago",  iconColor: "bg-emerald-500/10 text-emerald-400", ai: false },
-  { name: "project_notes.docx",   ext: "DOC", size: "340 KB", modified: "Yesterday",    iconColor: "bg-blue-500/10 text-blue-400",    ai: true  },
-  { name: "source_code_v2.zip",   ext: "ZIP", size: "8.7 MB", modified: "2 days ago",   iconColor: "bg-amber-500/10 text-amber-400",  ai: false },
-  { name: "meeting_recap.pdf",    ext: "PDF", size: "512 KB", modified: "3 days ago",   iconColor: "bg-red-500/10 text-red-400",     ai: true  },
-];
+type DashboardSummary = {
+  stats: {
+    projectCount: number;
+    fileCount: number;
+    sharedWithMeCount: number;
+    aiAnalyzedCount: number;
+    storageBytes: string;
+  };
+  recentFiles: Array<{
+    id: string;
+    name: string;
+    type: string;
+    sizeBytes: string | null;
+    updatedAt: string;
+    aiAnalyzed: boolean;
+  }>;
+};
 
-const AI_ACTIVITY = [
-  { file: "Q3_Report_2025.pdf",   action: "Summarized 24-page report into key insights",      time: "2h ago",  dot: "bg-blue-400"    },
-  { file: "project_notes.docx",   action: "Auto-tagged: Planning, Development, Q4",           time: "5h ago",  dot: "bg-emerald-400" },
-  { file: "meeting_recap.pdf",    action: "Extracted 6 action items from meeting notes",      time: "1d ago",  dot: "bg-amber-400"   },
-];
+const FILE_ICON: Record<string, string> = {
+  SQL: "bg-blue-500/10 text-blue-400",
+  DB: "bg-violet-500/10 text-violet-400",
+  CSV: "bg-emerald-500/10 text-emerald-400",
+  JSON: "bg-amber-500/10 text-amber-400",
+  DUMP: "bg-red-500/10 text-red-400",
+  ENV: "bg-zinc-500/10 text-zinc-400",
+  SQLITE: "bg-cyan-500/10 text-cyan-400",
+  OTHER: "bg-white/10 text-white/45",
+};
+
+function formatBytes(bytes?: string | null) {
+  const value = Number(bytes ?? 0);
+
+  if (!Number.isFinite(value) || value <= 0) return "0 B";
+
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  const index = Math.min(Math.floor(Math.log(value) / Math.log(1024)), units.length - 1);
+  const size = value / 1024 ** index;
+
+  return `${size.toFixed(size >= 10 || index === 0 ? 0 : 1)} ${units[index]}`;
+}
+
+function formatRelativeDate(dateValue: string) {
+  const date = new Date(dateValue);
+  const diffMs = Date.now() - date.getTime();
+
+  if (Number.isNaN(diffMs)) return "Recently";
+
+  const minutes = Math.max(1, Math.floor(diffMs / 60000));
+  if (minutes < 60) return `${minutes}m ago`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
+function getDisplayName(user: User | null | undefined) {
+  if (!user) return "there";
+
+  const firstName =
+    typeof user.user_metadata?.first_name === "string"
+      ? user.user_metadata.first_name
+      : "";
+  const lastName =
+    typeof user.user_metadata?.last_name === "string"
+      ? user.user_metadata.last_name
+      : "";
+  const metadataName =
+    typeof user.user_metadata?.name === "string" ? user.user_metadata.name : "";
+
+  return (
+    [firstName, lastName].filter(Boolean).join(" ") ||
+    metadataName ||
+    user.email?.split("@")[0] ||
+    "there"
+  );
+}
 
 const Content = () => {
+  const [summary, setSummary] = useState<DashboardSummary | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [displayName, setDisplayName] = useState("there");
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadSummary() {
+      try {
+        const response = await authFetch("/api/dashboard/summary");
+
+        if (!response.ok) return;
+
+        const data = (await response.json()) as DashboardSummary;
+        if (mounted) setSummary(data);
+      } finally {
+        if (mounted) setIsLoading(false);
+      }
+    }
+
+    loadSummary();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadUser() {
+      const { data } = await supabase.auth.getUser();
+
+      if (mounted) setDisplayName(getDisplayName(data.user));
+    }
+
+    loadUser();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setDisplayName(getDisplayName(session?.user));
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const stats = useMemo(() => {
+    const values = summary?.stats;
+
+    return STATS.map((stat) => {
+      if (stat.label === "Total Files") {
+        return {
+          ...stat,
+          value: isLoading ? "..." : String(values?.fileCount ?? 0),
+          sub: `${values?.projectCount ?? 0} projects`,
+        };
+      }
+
+      if (stat.label === "Storage Used") {
+        return {
+          ...stat,
+          value: isLoading ? "..." : formatBytes(values?.storageBytes),
+          sub: "across your files",
+        };
+      }
+
+      if (stat.label === "Shared Files") {
+        return {
+          ...stat,
+          value: isLoading ? "..." : String(values?.sharedWithMeCount ?? 0),
+          sub: "shared with you",
+        };
+      }
+
+      return {
+        ...stat,
+        value: isLoading ? "..." : String(values?.aiAnalyzedCount ?? 0),
+        sub: "files analyzed",
+      };
+    });
+  }, [isLoading, summary]);
+
+  const recentFiles = useMemo(
+    () =>
+      summary?.recentFiles.map((file) => ({
+        name: file.name,
+        ext: file.type,
+        size: formatBytes(file.sizeBytes),
+        modified: formatRelativeDate(file.updatedAt),
+        iconColor: FILE_ICON[file.type] ?? FILE_ICON.OTHER,
+        ai: file.aiAnalyzed,
+      })) ?? [],
+    [summary]
+  );
+
+  const aiActivity = recentFiles
+    .filter((file) => file.ai)
+    .map((file, index) => ({
+      file: file.name,
+      action: "Analyzed with AI tools",
+      time: file.modified,
+      dot: ["bg-blue-400", "bg-emerald-400", "bg-amber-400"][index % 3],
+    }));
+
   return (
     <div className="min-h-screen bg-[#070b14] text-[#e8edf5] font-sans w-full pt-4">
 
@@ -78,27 +255,18 @@ const Content = () => {
               className="text-4xl font-extrabold text-[#f0f4fa] tracking-[-1px] mb-1"
               style={{ fontFamily: "'Syne', sans-serif" }}
             >
-              Good morning, Juan 👋
+              Hello, {displayName}
             </h1>
             <p className="text-sm text-white/40 font-light">
-              Here's what's happening in your CloudRift today.
+              Here&apos;s what&apos;s happening in your CloudRift today.
             </p>
           </div>
 
-          {/* Upload — matches hero primary CTA exactly */}
-          <CustomButton tooltip="Upload" className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 transition-all hover:-translate-y-0.5 text-white font-medium px-5 py-2.5 rounded-xl text-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/>
-            </svg>
-            <span className="hidden sm:block">
-            Upload file
-            </span>
-          </CustomButton>
         </div>
 
         {/* Stat cards — same card style as hero stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {STATS.map((stat) => (
+          {stats.map((stat) => (
             <div
               key={stat.label}
               className="group bg-white/3 border border-white/8 hover:border-blue-500/30 hover:bg-blue-500/4 rounded-xl p-4 transition-all cursor-default"
@@ -140,7 +308,12 @@ const Content = () => {
             </div>
 
             <div className="divide-y divide-white/5">
-              {RECENT_FILES.map((file) => (
+              {recentFiles.length === 0 && (
+                <div className="px-5 py-10 text-center text-xs text-white/25">
+                  No files yet for this account.
+                </div>
+              )}
+              {recentFiles.map((file) => (
                 <div
                   key={file.name}
                   className="flex items-center gap-3 px-5 py-3 hover:bg-white/3 transition-colors group"
@@ -174,10 +347,8 @@ const Content = () => {
               ))}
             </div>
           </div>
-
           {/* Right column */}
           <div className="flex flex-col gap-5">
-
             {/* Storage card — same as hero stats card */}
             <div className="bg-white/3 border border-white/8 rounded-xl p-4">
               <h2 className="text-sm font-semibold text-white/60 mb-3" style={{ fontFamily: "'Syne', sans-serif" }}>
@@ -185,13 +356,12 @@ const Content = () => {
               </h2>
               <div className="flex items-end justify-between mb-2">
                 <span className="text-2xl font-bold text-[#f0f4fa]" style={{ fontFamily: "'Syne', sans-serif" }}>
-                  4.2 GB
+                  {isLoading ? "..." : formatBytes(summary?.stats.storageBytes)}
                 </span>
                 <span className="text-xs text-white/25">of 10 GB</span>
               </div>
-              {/* Same progress bar as hero */}
               <div className="h-1 bg-white/8 rounded-full overflow-hidden mb-3">
-                <div className="h-full w-[42%] bg-blue-500 rounded-full" />
+                <div className="h-full rounded-full bg-blue-500" style={{ width: summary?.stats.storageBytes ? `${Math.min(Number(summary.stats.storageBytes) / (10 * 1024 * 1024 * 1024) * 100, 100)}%` : "0%" }} />
               </div>
               <div className="grid grid-cols-3 gap-2 mb-3">
                 {[
@@ -223,7 +393,12 @@ const Content = () => {
                 </h2>
               </div>
               <div className="p-3 space-y-1">
-                {AI_ACTIVITY.map((item) => (
+                {aiActivity.length === 0 && (
+                  <div className="p-4 text-xs text-white/25">
+                    No AI activity yet.
+                  </div>
+                )}
+                {aiActivity.map((item) => (
                   <div key={item.file} className="flex gap-3 p-2.5 rounded-xl hover:bg-white/3 transition-colors group cursor-default">
                     <div className={`w-1.5 h-1.5 rounded-full ${item.dot} mt-1.5 shrink-0`} />
                     <div className="min-w-0">
@@ -238,18 +413,6 @@ const Content = () => {
           </div>
         </div>
 
-        {/* Drop zone — matches hero feature card hover style */}
-        <div className="mt-5 border border-dashed border-white/10 hover:border-blue-500/40 hover:bg-blue-500/4 rounded-xl p-7 flex flex-col items-center justify-center gap-2 transition-all cursor-pointer group">
-          <div className="w-10 h-10 rounded-xl bg-white/3 group-hover:bg-blue-500/10 border border-white/8 group-hover:border-blue-500/25 flex items-center justify-center transition-all">
-            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white/25 group-hover:text-blue-400 transition-colors">
-              <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/>
-            </svg>
-          </div>
-          <CustomButton tooltip="Upload a File" className="text-sm font-medium text-white/35 group-hover:text-white/55 transition-colors">
-            Drop files here to upload
-          </CustomButton>
-          <div className="text-[11px] text-white/20">or click to browse — any file type supported</div>
-        </div>
       </div>
     </div>
   );

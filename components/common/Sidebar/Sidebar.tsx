@@ -1,65 +1,225 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 // ─── Nav structure ────────────────────────────────────────
 const NAV_ITEMS = [
   {
     label: "Dashboard",
-    icon: <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>,
-    path:"/dashboard"
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="15"
+        height="15"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <rect width="7" height="9" x="3" y="3" rx="1" />
+        <rect width="7" height="5" x="14" y="3" rx="1" />
+        <rect width="7" height="9" x="14" y="12" rx="1" />
+        <rect width="7" height="5" x="3" y="16" rx="1" />
+      </svg>
+    ),
+    path: "/dashboard",
   },
   {
     label: "My Drive",
-    icon: <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>,
-    path:"/dashboard/drive"
-  
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="15"
+        height="15"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" />
+      </svg>
+    ),
+    path: "/dashboard/drive",
   },
   {
     label: "AI Tools",
-    icon: <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>,
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="15"
+        height="15"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+      </svg>
+    ),
     badge: "New",
     children: [
       {
         label: "DB Analyzer",
-        icon: <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>,
+        icon: (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="13"
+            height="13"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <ellipse cx="12" cy="5" rx="9" ry="3" />
+            <path d="M3 5V19A9 3 0 0 0 21 19V5" />
+            <path d="M3 12A9 3 0 0 0 21 12" />
+          </svg>
+        ),
+        path: "/dashboard/ai-tools/db-analyzer",
       },
       {
         label: "Query Assistant",
-        icon: <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 9 5 12 1.774-5.226L21 14 9 9z"/><path d="m16.071 16.071 4.243 4.243"/></svg>,
+        icon: (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="13"
+            height="13"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="m9 9 5 12 1.774-5.226L21 14 9 9z" />
+            <path d="m16.071 16.071 4.243 4.243" />
+          </svg>
+        ),
+        path: "/dashboard/ai-tools/query-assist",
       },
       {
         label: "Schema Diff",
-        icon: <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="9" x2="15" y1="15" y2="15"/><line x1="12" x2="12" y1="12" y2="18"/></svg>,
+        icon: (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="13"
+            height="13"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="9" x2="15" y1="15" y2="15" />
+            <line x1="12" x2="12" y1="12" y2="18" />
+          </svg>
+        ),
+        path: "/dashboard/ai-tools/schema-diff",
       },
     ],
   },
   {
     label: "Shared",
-    icon: <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
-    path:"/dashboard/shared"
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="15"
+        height="15"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+    ),
+    path: "/dashboard/shared",
   },
   {
     label: "Activity Log",
-    icon: <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>,
-    path:"/dashboard/activitylog"
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="15"
+        height="15"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+        <line x1="16" x2="8" y1="13" y2="13" />
+        <line x1="16" x2="8" y1="17" y2="17" />
+        <polyline points="10 9 9 9 8 9" />
+      </svg>
+    ),
+    path: "/dashboard/activitylog",
   },
   {
     label: "API Access",
-    icon: <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>,
-    path:"/dashboard/apiaccess"
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="15"
+        height="15"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4" />
+      </svg>
+    ),
+    path: "/dashboard/apiaccess",
   },
   {
     label: "Settings",
-    icon: <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>,
-    path:"/dashboard/settings"
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="15"
+        height="15"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+        <circle cx="12" cy="12" r="3" />
+      </svg>
+    ),
+    path: "/dashboard/settings",
   },
 ];
 
 const RECENT_FILES = [
-  { name: "schema_v4.sql",       color: "text-blue-400"    },
-  { name: "users_schema.sql",    color: "text-blue-400"    },
+  { name: "schema_v4.sql", color: "text-blue-400" },
+  { name: "users_schema.sql", color: "text-blue-400" },
   { name: "products_export.csv", color: "text-emerald-400" },
 ];
 
@@ -68,9 +228,13 @@ interface DashboardSidebarProps {
   onToggle: () => void;
 }
 
-export default function DashboardSidebar({ collapsed, onToggle }: DashboardSidebarProps) {
-  const [active, setActive]           = useState("Dashboard");
-  const [aiOpen, setAiOpen]           = useState(false);
+export default function DashboardSidebar({
+  collapsed,
+  onToggle,
+}: DashboardSidebarProps) {
+  const [active, setActive] = useState("Dashboard");
+  const [aiOpen, setAiOpen] = useState(false);
+  const router = useRouter();
 
   return (
     <aside
@@ -82,7 +246,8 @@ export default function DashboardSidebar({ collapsed, onToggle }: DashboardSideb
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          backgroundImage: "linear-gradient(rgba(56,138,221,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(56,138,221,0.03) 1px, transparent 1px)",
+          backgroundImage:
+            "linear-gradient(rgba(56,138,221,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(56,138,221,0.03) 1px, transparent 1px)",
           backgroundSize: "48px 48px",
         }}
       />
@@ -95,10 +260,18 @@ export default function DashboardSidebar({ collapsed, onToggle }: DashboardSideb
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           <svg
-            xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            xmlns="http://www.w3.org/2000/svg"
+            width="13"
+            height="13"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
             className={`transition-transform duration-300 ${collapsed ? "rotate-180" : ""}`}
           >
-            <path d="m15 18-6-6 6-6"/>
+            <path d="m15 18-6-6 6-6" />
           </svg>
         </button>
       </div>
@@ -106,95 +279,171 @@ export default function DashboardSidebar({ collapsed, onToggle }: DashboardSideb
       {/* Nav */}
       <nav className="relative flex-1 px-2 space-y-0.5">
         {!collapsed && (
-          <p className="text-[10px] font-medium text-white/20 uppercase tracking-widest px-3 pb-2">Menu</p>
+          <p className="text-[10px] font-medium text-white/20 uppercase tracking-widest px-3 pb-2">
+            Menu
+          </p>
         )}
 
         {NAV_ITEMS.map((item) => {
-          const isActive    = active === item.label || (item.children?.some((c) => c.label === active));
+          const isActive =
+            active === item.label ||
+            item.children?.some((c) => c.label === active);
           const hasChildren = !!item.children;
 
           return (
-            <Link href={item.path ?? ""} key={item.label}>
-              <button
-                onClick={() => {
-                  if (hasChildren) {
+            <div key={item.label}>
+              {/* Parent button — Link only if no children */}
+              {hasChildren ? (
+                <button
+                  onClick={() => {
                     if (!collapsed) setAiOpen((o) => !o);
-                  } else {
-                    setActive(item.label);
-                  }
-                }}
-                title={collapsed ? item.label : undefined}
-                className={`w-full flex items-center gap-3 rounded-xl font-medium transition-all text-left group ${
-                  collapsed ? "justify-center px-0 py-2.5" : "justify-between px-3 py-2.5"
-                } ${
-                  isActive
-                    ? "bg-blue-500/15 text-blue-300 border border-blue-500/2"
-                    : "text-white/40 hover:text-white/70 hover:bg-white/4 border border-transparent"
-                }`}
-              >
-                <div className={`flex items-center gap-3 ${collapsed ? "justify-center" : ""}`}>
-                  <span className={`shrink-0 transition-colors ${isActive ? "text-blue-400" : "text-white/25 group-hover:text-white/45"}`}>
-                    {item.icon}
-                  </span>
-                  {!collapsed && <span className="text-sm whitespace-nowrap">{item.label}</span>}
-                </div>
-                {!collapsed && (
-                  <div className="flex items-center gap-1.5">
-                    {item.badge && (
-                      <span className="text-[9px] font-semibold bg-blue-500/15 text-blue-400 border border-blue-500/25 rounded-full px-1.5 py-0.5">
-                        {item.badge}
+                  }}
+                  title={collapsed ? item.label : undefined}
+                  className={`w-full flex items-center gap-3 rounded-xl font-medium transition-all text-left group ${
+                    collapsed
+                      ? "justify-center px-0 py-2.5"
+                      : "justify-between px-3 py-2.5"
+                  } ${
+                    isActive
+                      ? "bg-blue-500/15 text-blue-300 border border-blue-500/2"
+                      : "text-white/40 hover:text-white/70 hover:bg-white/4 border border-transparent"
+                  }`}
+                >
+                  <div
+                    className={`flex items-center gap-3 ${collapsed ? "justify-center" : ""}`}
+                  >
+                    <span
+                      className={`shrink-0 transition-colors ${isActive ? "text-blue-400" : "text-white/25 group-hover:text-white/45"}`}
+                    >
+                      {item.icon}
+                    </span>
+                    {!collapsed && (
+                      <span className="text-sm whitespace-nowrap">
+                        {item.label}
                       </span>
                     )}
-                    {hasChildren && (
+                  </div>
+                  {!collapsed && (
+                    <div className="flex items-center gap-1.5">
+                      {item.badge && (
+                        <span className="text-[9px] font-semibold bg-blue-500/15 text-blue-400 border border-blue-500/25 rounded-full px-1.5 py-0.5">
+                          {item.badge}
+                        </span>
+                      )}
                       <svg
-                        xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="11"
+                        height="11"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
                         className={`text-white/20 transition-transform duration-200 ${aiOpen ? "rotate-180" : ""}`}
                       >
-                        <path d="m6 9 6 6 6-6"/>
+                        <path d="m6 9 6 6 6-6" />
                       </svg>
+                    </div>
+                  )}
+                </button>
+              ) : (
+                <Link href={item.path ?? ""}>
+                  <button
+                    onClick={() => setActive(item.label)}
+                    title={collapsed ? item.label : undefined}
+                    className={`w-full flex items-center gap-3 rounded-xl font-medium transition-all text-left group ${
+                      collapsed
+                        ? "justify-center px-0 py-2.5"
+                        : "justify-between px-3 py-2.5"
+                    } ${
+                      isActive
+                        ? "bg-blue-500/15 text-blue-300 border border-blue-500/2"
+                        : "text-white/40 hover:text-white/70 hover:bg-white/4 border border-transparent"
+                    }`}
+                  >
+                    <div
+                      className={`flex items-center gap-3 ${collapsed ? "justify-center" : ""}`}
+                    >
+                      <span
+                        className={`shrink-0 transition-colors ${isActive ? "text-blue-400" : "text-white/25 group-hover:text-white/45"}`}
+                      >
+                        {item.icon}
+                      </span>
+                      {!collapsed && (
+                        <span className="text-sm whitespace-nowrap">
+                          {item.label}
+                        </span>
+                      )}
+                    </div>
+                    {!collapsed && item.badge && (
+                      <span className="text-[9px] font-semibold bg-blue-500/15 text-blue-400 border border-blue-500/25 rounded-full px-1.5 py-0.5">
+                      </span>
                     )}
-                  </div>
-                )}
-              </button>
+                  </button>
+                </Link>
+              )}
 
-              {/* AI Tools submenu */}
+              {/* AI Tools submenu — outside the Link entirely */}
               {hasChildren && !collapsed && aiOpen && (
                 <div className="ml-3 mt-0.5 pl-3 border-l border-white/[0.07] space-y-0.5">
                   {item.children!.map((child) => {
                     const childActive = active === child.label;
                     return (
-                      <button
-                        key={child.label}
-                        onClick={() => setActive(child.label)}
-                        className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium transition-all text-left group ${
-                          childActive
-                            ? "bg-blue-500/12 text-blue-300 border border-blue-500/18"
-                            : "text-white/35 hover:text-white/65 hover:bg-white/4 border border-transparent"
-                        }`}
-                      >
-                        <span className={`shrink-0 ${childActive ? "text-blue-400" : "text-white/20 group-hover:text-white/40"}`}>
-                          {child.icon}
-                        </span>
-                        {child.label}
-                      </button>
+                      <Link href={child.path} key={child.label}>
+                        <button
+                          onClick={() => setActive(child.label)}
+                          className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium transition-all text-left group ${
+                            childActive
+                              ? "bg-blue-500/12 text-blue-300 border border-blue-500/18"
+                              : "text-white/35 hover:text-white/65 hover:bg-white/4 border border-transparent"
+                          }`}
+                        >
+                          <span
+                            className={`shrink-0 ${childActive ? "text-blue-400" : "text-white/20 group-hover:text-white/40"}`}
+                          >
+                            {child.icon}
+                          </span>
+                          {child.label}
+                        </button>
+                      </Link>
                     );
                   })}
                 </div>
               )}
-            </Link>
+            </div>
           );
         })}
 
         {/* Recent files */}
         {!collapsed && (
           <div className="pt-5">
-            <p className="text-[10px] font-medium text-white/20 uppercase tracking-widest px-3 pb-2">Recent</p>
+            <p className="text-[10px] font-medium text-white/20 uppercase tracking-widest px-3 pb-2">
+              Recent
+            </p>
             {RECENT_FILES.map((file) => (
-              <button key={file.name} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left hover:bg-white/4 transition-colors group">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`shrink-0 ${file.color}`}>
-                  <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/>
+              <button
+                key={file.name}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left hover:bg-white/4 transition-colors group"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className={`shrink-0 ${file.color}`}
+                >
+                  <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+                  <path d="M14 2v4a2 2 0 0 0 2 2h4" />
                 </svg>
-                <span className="text-xs text-white/30 group-hover:text-white/55 truncate transition-colors">{file.name}</span>
+                <span className="text-xs text-white/30 group-hover:text-white/55 truncate transition-colors">
+                  {file.name}
+                </span>
               </button>
             ))}
           </div>
@@ -204,15 +453,31 @@ export default function DashboardSidebar({ collapsed, onToggle }: DashboardSideb
       {/* Storage */}
       <div className="relative p-2">
         {collapsed ? (
-          <button title="Storage: 4.2 / 10 GB" className="w-full flex items-center justify-center py-2.5 rounded-xl bg-white/3 border border-white/8 hover:border-blue-500/25 hover:bg-blue-500/6 transition-all group">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white/30 group-hover:text-blue-400 transition-colors">
-              <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+          <button
+            title="Storage: 4.2 / 10 GB"
+            className="w-full flex items-center justify-center py-2.5 rounded-xl bg-white/3 border border-white/8 hover:border-blue-500/25 hover:bg-blue-500/6 transition-all group"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-white/30 group-hover:text-blue-400 transition-colors"
+            >
+              <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" />
             </svg>
           </button>
         ) : (
           <div className="bg-white/3 border border-white/8 rounded-xl p-3.5 hover:border-white/12 transition-all">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-medium text-white/45">Storage</span>
+              <span className="text-[11px] font-medium text-white/45">
+                Storage
+              </span>
               <span className="text-[10px] text-white/22">4.2 / 10 GB</span>
             </div>
             <div className="h-1 bg-white/8 rounded-full overflow-hidden mb-3">

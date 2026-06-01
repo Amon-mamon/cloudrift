@@ -20,13 +20,13 @@ interface ToggleProps {
 const Toggle = ({ enabled, onChange }: ToggleProps) => (
   <button
     onClick={onChange}
-    className={`relative w-10 h-5 rounded-full transition-colors duration-200 flex-shrink-0 ${
-      enabled ? "bg-blue-600" : "bg-white/[0.10]"
-    } border ${enabled ? "border-blue-500/50" : "border-white/[0.12]"}`}
+    className={`relative w-10 h-5 rounded-full transition-colors duration-200 shrink-0 ${
+      enabled ? "bg-blue-600" : "bg-white/10"
+    } border ${enabled ? "border-blue-500/50" : "border-white/12"}`}
   >
     <span
       className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all duration-200 ${
-        enabled ? "left-[22px]" : "left-0.5"
+        enabled ? "left-22" : "left-0.5"
       }`}
     />
   </button>
@@ -59,9 +59,9 @@ const Content = () => {
 
       {/* Background */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
-        <div className="absolute w-[500px] h-[500px] rounded-full opacity-20 blur-[90px] bg-blue-600" style={{ top: "-120px", left: "140px" }} />
-        <div className="absolute w-[360px] h-[360px] rounded-full opacity-15 blur-[80px] bg-emerald-600" style={{ top: "60px", right: "-60px" }} />
-        <div className="absolute w-[260px] h-[260px] rounded-full opacity-10 blur-[70px] bg-violet-700" style={{ bottom: "60px", left: "45%" }} />
+        <div className="absolute w-125 h-125 rounded-full opacity-20 blur-[90px] bg-blue-600" style={{ top: "-120px", left: "140px" }} />
+        <div className="absolute w-90 h-90 rounded-full opacity-15 blur-[80px] bg-emerald-600" style={{ top: "60px", right: "-60px" }} />
+        <div className="absolute w-65 h-65 rounded-full opacity-10 blur-[70px] bg-violet-700" style={{ bottom: "60px", left: "45%" }} />
         <div className="absolute inset-0" style={{ backgroundImage: "linear-gradient(rgba(56,138,221,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(56,138,221,0.05) 1px, transparent 1px)", backgroundSize: "48px 48px" }} />
       </div>
 
@@ -78,7 +78,7 @@ const Content = () => {
         <div className="flex gap-6">
 
           {/* Sidebar tabs */}
-          <div className="flex-shrink-0 w-44">
+          <div className="shrink-0 w-44">
             <nav className="flex flex-col gap-0.5">
               {TABS.map((tab) => (
                 <button
@@ -87,11 +87,11 @@ const Content = () => {
                   className={`w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                     activeTab === tab.id
                       ? tab.id === "danger"
-                        ? "bg-red-500/[0.10] text-red-400 border border-red-500/[0.2]"
-                        : "bg-blue-500/[0.15] text-blue-300 border border-blue-500/[0.2]"
+                        ? "bg-red-500/10 text-red-400 border border-red-500/2"
+                        : "bg-blue-500/15 text-blue-300 border border-blue-500/2"
                       : tab.id === "danger"
-                        ? "text-red-400/50 hover:text-red-400/80 hover:bg-red-500/[0.06] border border-transparent"
-                        : "text-white/40 hover:text-white/70 hover:bg-white/[0.04] border border-transparent"
+                        ? "text-red-400/50 hover:text-red-400/80 hover:bg-red-500/6 border border-transparent"
+                        : "text-white/40 hover:text-white/70 hover:bg-white/4 border border-transparent"
                   }`}
                 >
                   {tab.label}
@@ -107,14 +107,14 @@ const Content = () => {
             {activeTab === "profile" && (
               <div className="space-y-4">
                 {/* Avatar card */}
-                <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-5">
+                <div className="bg-white/3 border border-white/8 rounded-xl p-5">
                   <h2 className="text-sm font-semibold text-white/55 mb-4" style={{ fontFamily: "'Syne', sans-serif" }}>Profile picture</h2>
                   <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center text-xl font-bold text-white flex-shrink-0">
+                    <div className="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center text-xl font-bold text-white shrink-0">
                       JD
                     </div>
                     <div>
-                      <button className="flex items-center gap-1.5 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.10] hover:border-white/[0.18] text-white/55 hover:text-white/75 text-xs font-medium px-3.5 py-2 rounded-xl transition-all mb-1.5">
+                      <button className="flex items-center gap-1.5 bg-white/4 hover:bg-white/8 border border-white/10 hover:border-white/18 text-white/55 hover:text-white/75 text-xs font-medium px-3.5 py-2 rounded-xl transition-all mb-1.5">
                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/></svg>
                         Upload photo
                       </button>
@@ -124,7 +124,7 @@ const Content = () => {
                 </div>
 
                 {/* Profile fields */}
-                <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden">
+                <div className="bg-white/3 border border-white/8 rounded-xl overflow-hidden">
                   <h2 className="text-sm font-semibold text-white/55 px-5 py-4 border-b border-white/[0.07]" style={{ fontFamily: "'Syne', sans-serif" }}>
                     Personal info
                   </h2>
@@ -132,7 +132,7 @@ const Content = () => {
                     { label: "Display name", desc: "Your name visible to collaborators", value: displayName, onChange: setDisplayName },
                     { label: "Email address", desc: "Used to sign in and receive notifications", value: email, onChange: setEmail },
                   ].map((field) => (
-                    <div key={field.label} className="flex items-center justify-between px-5 py-4 border-b border-white/[0.05] last:border-0">
+                    <div key={field.label} className="flex items-center justify-between px-5 py-4 border-b border-white/5 last:border-0">
                       <div>
                         <div className="text-sm font-medium text-white/70">{field.label}</div>
                         <div className="text-[11px] text-white/30 mt-0.5">{field.desc}</div>
@@ -140,7 +140,7 @@ const Content = () => {
                       <input
                         value={field.value}
                         onChange={(e) => field.onChange(e.target.value)}
-                        className="bg-white/[0.04] border border-white/[0.10] rounded-xl px-3 py-2 text-xs text-[#e8edf5] placeholder-white/20 outline-none focus:border-blue-500/50 focus:bg-white/[0.06] transition-colors w-52"
+                        className="bg-white/4 border border-white/10 rounded-xl px-3 py-2 text-xs text-[#e8edf5] placeholder-white/20 outline-none focus:border-blue-500/50 focus:bg-white/6 transition-colors w-52"
                       />
                     </div>
                   ))}
@@ -156,7 +156,7 @@ const Content = () => {
 
             {/* ── PREFERENCES ────────────────────────────── */}
             {activeTab === "preferences" && (
-              <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden">
+              <div className="bg-white/3 border border-white/8 rounded-xl overflow-hidden">
                 <h2 className="text-sm font-semibold text-white/55 px-5 py-4 border-b border-white/[0.07]" style={{ fontFamily: "'Syne', sans-serif" }}>
                   Notifications & AI
                 </h2>
@@ -167,7 +167,7 @@ const Content = () => {
                   { key: "shareActivity"      as const, label: "Share activity alerts", desc: "Get notified when collaborators access your files"      },
                   { key: "weeklyDigest"       as const, label: "Weekly digest",        desc: "Receive a weekly summary of your storage activity"       },
                 ].map((item) => (
-                  <div key={item.key} className="flex items-center justify-between px-5 py-4 border-b border-white/[0.05] last:border-0 group hover:bg-white/[0.02] transition-colors">
+                  <div key={item.key} className="flex items-center justify-between px-5 py-4 border-b border-white/5 last:border-0 group hover:bg-white/2 transition-colors">
                     <div>
                       <div className="text-sm font-medium text-white/70 group-hover:text-white/85 transition-colors">{item.label}</div>
                       <div className="text-[11px] text-white/30 mt-0.5">{item.desc}</div>
@@ -182,7 +182,7 @@ const Content = () => {
             {activeTab === "storage" && (
               <div className="space-y-4">
                 {/* Current plan */}
-                <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-5">
+                <div className="bg-white/3 border border-white/8 rounded-xl p-5">
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <h2 className="text-sm font-semibold text-white/55 mb-1" style={{ fontFamily: "'Syne', sans-serif" }}>Current plan</h2>
@@ -198,13 +198,13 @@ const Content = () => {
                     <span className="text-2xl font-bold text-[#f0f4fa]" style={{ fontFamily: "'Syne', sans-serif" }}>4.2 GB</span>
                     <span className="text-xs text-white/30">of 10 GB used</span>
                   </div>
-                  <div className="h-2 bg-white/[0.08] rounded-full overflow-hidden">
+                  <div className="h-2 bg-white/8 rounded-full overflow-hidden">
                     <div className="h-full w-[42%] bg-blue-500 rounded-full" />
                   </div>
                 </div>
 
                 {/* Breakdown */}
-                <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden">
+                <div className="bg-white/3 border border-white/8 rounded-xl overflow-hidden">
                   <h2 className="text-sm font-semibold text-white/55 px-5 py-4 border-b border-white/[0.07]" style={{ fontFamily: "'Syne', sans-serif" }}>
                     Storage breakdown
                   </h2>
@@ -214,10 +214,10 @@ const Content = () => {
                     { label: "Archives",     size: "0.9 GB", pct: 9,  color: "bg-amber-500"   },
                     { label: "Other",        size: "0.3 GB", pct: 3,  color: "bg-violet-500"  },
                   ].map((item) => (
-                    <div key={item.label} className="flex items-center gap-4 px-5 py-3.5 border-b border-white/[0.05] last:border-0">
-                      <div className={`w-2.5 h-2.5 rounded-full ${item.color} flex-shrink-0`} />
+                    <div key={item.label} className="flex items-center gap-4 px-5 py-3.5 border-b border-white/5 last:border-0">
+                      <div className={`w-2.5 h-2.5 rounded-full ${item.color} shrink-0`} />
                       <span className="text-sm text-white/65 flex-1">{item.label}</span>
-                      <div className="w-32 h-1.5 bg-white/[0.08] rounded-full overflow-hidden">
+                      <div className="w-32 h-1.5 bg-white/8 rounded-full overflow-hidden">
                         <div className={`h-full ${item.color} rounded-full`} style={{ width: `${(item.pct / 42) * 100}%` }} />
                       </div>
                       <span className="text-xs text-white/35 w-14 text-right">{item.size}</span>
@@ -230,18 +230,18 @@ const Content = () => {
             {/* ── SECURITY ───────────────────────────────── */}
             {activeTab === "security" && (
               <div className="space-y-4">
-                <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden">
+                <div className="bg-white/3 border border-white/8 rounded-xl overflow-hidden">
                   <h2 className="text-sm font-semibold text-white/55 px-5 py-4 border-b border-white/[0.07]" style={{ fontFamily: "'Syne', sans-serif" }}>
                     Security settings
                   </h2>
-                  <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.05]">
+                  <div className="flex items-center justify-between px-5 py-4 border-b border-white/5">
                     <div>
                       <div className="text-sm font-medium text-white/70">Two-factor authentication</div>
                       <div className="text-[11px] text-white/30 mt-0.5">Add an extra layer of security to your account</div>
                     </div>
                     <Toggle enabled={twoFactor} onChange={() => setTwoFactor(!twoFactor)} />
                   </div>
-                  <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.05]">
+                  <div className="flex items-center justify-between px-5 py-4 border-b border-white/5">
                     <div>
                       <div className="text-sm font-medium text-white/70">Login alerts</div>
                       <div className="text-[11px] text-white/30 mt-0.5">Get notified of new sign-ins to your account</div>
@@ -253,14 +253,14 @@ const Content = () => {
                       <div className="text-sm font-medium text-white/70">Change password</div>
                       <div className="text-[11px] text-white/30 mt-0.5">Last changed 3 months ago</div>
                     </div>
-                    <button className="flex items-center gap-1.5 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.10] hover:border-white/[0.18] text-white/55 hover:text-white/75 text-xs font-medium px-3.5 py-2 rounded-xl transition-all">
+                    <button className="flex items-center gap-1.5 bg-white/4 hover:bg-white/8 border border-white/10 hover:border-white/18 text-white/55 hover:text-white/75 text-xs font-medium px-3.5 py-2 rounded-xl transition-all">
                       Update password
                     </button>
                   </div>
                 </div>
 
                 {/* Active sessions */}
-                <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden">
+                <div className="bg-white/3 border border-white/8 rounded-xl overflow-hidden">
                   <h2 className="text-sm font-semibold text-white/55 px-5 py-4 border-b border-white/[0.07]" style={{ fontFamily: "'Syne', sans-serif" }}>
                     Active sessions
                   </h2>
@@ -269,16 +269,16 @@ const Content = () => {
                     { device: "Safari on iPhone",    location: "Manila, PH",    time: "2 hours ago",     current: false },
                     { device: "Firefox on MacOS",    location: "Cebu, PH",      time: "3 days ago",      current: false },
                   ].map((s, i) => (
-                    <div key={i} className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.05] last:border-0">
+                    <div key={i} className="flex items-center justify-between px-5 py-3.5 border-b border-white/5 last:border-0">
                       <div className="flex items-center gap-3">
-                        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${s.current ? "bg-emerald-400" : "bg-white/20"}`} />
+                        <div className={`w-2 h-2 rounded-full shrink-0 ${s.current ? "bg-emerald-400" : "bg-white/20"}`} />
                         <div>
                           <div className="text-xs font-medium text-white/65">{s.device}</div>
                           <div className="text-[10px] text-white/28 mt-0.5">{s.location} · {s.time}</div>
                         </div>
                       </div>
                       {!s.current && (
-                        <button className="text-[10px] text-red-400/60 hover:text-red-400 bg-red-500/[0.06] hover:bg-red-500/[0.12] border border-red-500/[0.15] rounded-lg px-2.5 py-1 transition-all">
+                        <button className="text-[10px] text-red-400/60 hover:text-red-400 bg-red-500/6 hover:bg-red-500/12 border border-red-500/15 rounded-lg px-2.5 py-1 transition-all">
                           Revoke
                         </button>
                       )}
@@ -292,8 +292,8 @@ const Content = () => {
             {/* ── DANGER ZONE ────────────────────────────── */}
             {activeTab === "danger" && (
               <div className="space-y-4">
-                <div className="bg-white/[0.03] border border-red-500/[0.15] rounded-xl overflow-hidden">
-                  <div className="flex items-center gap-2 px-5 py-4 border-b border-red-500/[0.10]">
+                <div className="bg-white/3 border border-red-500/15 rounded-xl overflow-hidden">
+                  <div className="flex items-center gap-2 px-5 py-4 border-b border-red-500/10">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E24B4A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
                     <h2 className="text-sm font-semibold text-red-400/80" style={{ fontFamily: "'Syne', sans-serif" }}>Danger zone</h2>
                   </div>
@@ -315,12 +315,12 @@ const Content = () => {
                       btn:   "Delete account",
                     },
                   ].map((item) => (
-                    <div key={item.label} className="flex items-center justify-between px-5 py-4 border-b border-red-500/[0.08] last:border-0">
+                    <div key={item.label} className="flex items-center justify-between px-5 py-4 border-b border-red-500/8 last:border-0">
                       <div>
                         <div className="text-sm font-medium text-white/65">{item.label}</div>
                         <div className="text-[11px] text-white/28 mt-0.5 max-w-xs">{item.desc}</div>
                       </div>
-                      <button className="flex-shrink-0 text-xs font-medium text-red-400 bg-red-500/[0.08] hover:bg-red-500/[0.15] border border-red-500/[0.2] rounded-xl px-3.5 py-2 transition-all">
+                      <button className="shrink-0 text-xs font-medium text-red-400 bg-red-500/8 hover:bg-red-500/15 border border-red-500/2 rounded-xl px-3.5 py-2 transition-all">
                         {item.btn}
                       </button>
                     </div>

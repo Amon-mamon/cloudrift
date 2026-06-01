@@ -1,17 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import FormInput from "@/components/reusable/input/FormInput";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { registerSchema, RegisterSchema } from "@/components/schema/schema";
 
 const Register = () => {
+  const router = useRouter();
   const [password, setPassword] = useState("");
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<RegisterSchema>({
     resolver: zodResolver(registerSchema),
@@ -25,7 +30,8 @@ const Register = () => {
     return 4;
   };
 
-  const strength = getStrength(password);
+  const passwrd = watch("password") ?? "";
+  const strength = getStrength(passwrd);
 
   const strengthColor = (index: number) => {
     if (index >= strength) return "bg-white/10";
@@ -34,12 +40,33 @@ const Register = () => {
     return "bg-emerald-500";
   };
 
-  function onSubmit(data: RegisterSchema) {
-    console.log({
-      name: data.first_name,
-      email: data.email,
-    });
+  async function onSubmit(data: RegisterSchema) {
+    setSubmitError(null);
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Registration failed. Please try again.");
+      }
+
+      router.push("/auth/login");
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "Registration failed.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
+
   return (
     <div
       onClick={(e) => e.stopPropagation()}
@@ -109,6 +136,9 @@ const Register = () => {
               </Link>
             </p>
             <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+              {submitError && (
+                <p className="text-sm text-red-400 text-center">{submitError}</p>
+              )}
               {/* Name row */}
               <div className="grid grid-cols-2 gap-3">
                 <FormInput
@@ -142,7 +172,6 @@ const Register = () => {
                 <FormInput
                   error={errors.password}
                   {...register("password")}
-                  onChange={(e) => setPassword(e.target.value)}
                   type="password"
                   placeholder="test@gmail.com"
                   label="Password"
@@ -180,10 +209,10 @@ const Register = () => {
               <div className="w-full flex text-center">
                 <button
                   type="submit"
-                  onClick={() => console.log("Submitted Successfully")}
-                  className="w-full bg-blue-600 hover:bg-blue-500 transition-colors text-white font-medium text-sm py-3 rounded-xl mt-1"
+                  disabled={isSubmitting}
+                  className="w-full bg-blue-600 hover:bg-blue-500 transition-colors text-white font-medium text-sm py-3 rounded-xl mt-1 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Submit
+                  {isSubmitting ? "Creating account..." : "Submit"}
                 </button>
               </div>
               {/* Submit */}

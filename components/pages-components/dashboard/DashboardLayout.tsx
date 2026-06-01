@@ -2,6 +2,7 @@
 
 import Header from "@/components/common/Header/Header";
 import Sidebar from "@/components/common/Sidebar/Sidebar";
+import AuthGuard from "@/components/auth/AuthGuard";
 import { useState } from "react";
 
 
@@ -9,10 +10,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <>
+    <AuthGuard>
       <Header />
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
-
       {/* Main content shifts based on sidebar width */}
       <main
         className={`transition-all duration-300 ease-in-out pt-18.25 ml-15 ${
@@ -21,6 +21,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       >
         {children}
       </main>
-    </>
+    </AuthGuard>
   );
 }

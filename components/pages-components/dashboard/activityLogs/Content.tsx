@@ -1,39 +1,40 @@
 "use client";
 
-import { JSX, useState } from "react";
+import { JSX, useEffect, useMemo, useState } from "react";
+import { authFetch } from "@/lib/auth-fetch";
 
 // ─── Types ────────────────────────────────────────────────
 type ActionType = "upload" | "download" | "share" | "delete" | "ai" | "access";
 
-interface LogEntry {
-  id: number;
-  user: { initials: string; name: string; color: string; };
-  action: ActionType;
+type ActivityEntry = {
+  id: string;
+  action: string;
   description: string;
-  file: string;
-  fileType: string;
-  project: string;
-  time: string;
-  ip: string;
-}
+  createdAt: string;
+  ipAddress?: string | null;
+  file?: {
+    name: string;
+    type: string;
+    project?: { name: string } | null;
+    aiAnalyzed: boolean;
+    sizeBytes?: string | number | null;
+  } | null;
+};
 
-// ─── Mock Data ────────────────────────────────────────────
-const LOGS: LogEntry[] = [
-  { id: 1,  user: { initials: "JD", name: "You",            color: "bg-blue-600"    }, action: "upload",   description: "Uploaded file",           file: "schema_v4.sql",          fileType: "SQL",    project: "E-Commerce Platform",  time: "2 min ago",    ip: "192.168.1.1"   },
-  { id: 2,  user: { initials: "MA", name: "Maria Andres",   color: "bg-blue-600"    }, action: "ai",       description: "Ran AI DB Analyzer on",   file: "ecommerce_schema_v4.sql", fileType: "SQL",    project: "E-Commerce Platform",  time: "15 min ago",   ip: "192.168.1.24"  },
-  { id: 3,  user: { initials: "KL", name: "Krista Lim",     color: "bg-violet-600"  }, action: "download", description: "Downloaded file",          file: "users_schema.sql",        fileType: "SQL",    project: "Auth Service",         time: "1 hour ago",   ip: "10.0.0.12"     },
-  { id: 4,  user: { initials: "JD", name: "You",            color: "bg-blue-600"    }, action: "share",    description: "Shared file with team",   file: "products_export.csv",     fileType: "CSV",    project: "E-Commerce Platform",  time: "2 hours ago",  ip: "192.168.1.1"   },
-  { id: 5,  user: { initials: "RB", name: "Ramon Bautista", color: "bg-amber-600"   }, action: "access",   description: "Accessed file",           file: "auth_backup.dump",        fileType: "DUMP",   project: "Auth Service",         time: "3 hours ago",  ip: "172.16.0.5"    },
-  { id: 6,  user: { initials: "JD", name: "You",            color: "bg-blue-600"    }, action: "ai",       description: "Ran Query Assistant on",  file: "users_schema.sql",        fileType: "SQL",    project: "Auth Service",         time: "5 hours ago",  ip: "192.168.1.1"   },
-  { id: 7,  user: { initials: "TN", name: "Troy Navarro",   color: "bg-red-600"     }, action: "download", description: "Downloaded file",          file: "app_local.sqlite",        fileType: "SQLITE", project: "Mobile App Backend",   time: "6 hours ago",  ip: "10.0.0.44"     },
-  { id: 8,  user: { initials: "JD", name: "You",            color: "bg-blue-600"    }, action: "upload",   description: "Uploaded file",           file: "seed_data.sql",           fileType: "SQL",    project: "E-Commerce Platform",  time: "Yesterday",    ip: "192.168.1.1"   },
-  { id: 9,  user: { initials: "SA", name: "Sofia Aquino",   color: "bg-emerald-600" }, action: "ai",       description: "Ran Schema Diff on",      file: "inventory_schema.sql",    fileType: "SQL",    project: "Inventory System",     time: "Yesterday",    ip: "10.0.0.88"     },
-  { id: 10, user: { initials: "KL", name: "Krista Lim",     color: "bg-violet-600"  }, action: "delete",   description: "Deleted file",            file: "old_migration.sql",       fileType: "SQL",    project: "Auth Service",         time: "2 days ago",   ip: "10.0.0.12"     },
-  { id: 11, user: { initials: "JD", name: "You",            color: "bg-blue-600"    }, action: "share",    description: "Shared file with team",   file: "analytics_config.json",   fileType: "JSON",   project: "Analytics Dashboard",  time: "2 days ago",   ip: "192.168.1.1"   },
-  { id: 12, user: { initials: "MA", name: "Maria Andres",   color: "bg-blue-600"    }, action: "upload",   description: "Uploaded file",           file: "db_backup_oct.dump",      fileType: "DUMP",   project: "E-Commerce Platform",  time: "3 days ago",   ip: "192.168.1.24"  },
-];
+const getRelativeTime = (dateString: string) => {
+  const date = new Date(dateString);
+  const seconds = Math.round((date.getTime() - Date.now()) / 1000);
+  const minutes = Math.round(seconds / 60);
+  const hours = Math.round(minutes / 60);
+  const days = Math.round(hours / 24);
+  const formatter = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
 
-// ─── Helpers ──────────────────────────────────────────────
+  if (Math.abs(days) >= 1) return formatter.format(days, "day");
+  if (Math.abs(hours) >= 1) return formatter.format(hours, "hour");
+  if (Math.abs(minutes) >= 1) return formatter.format(minutes, "minute");
+  return formatter.format(seconds, "second");
+};
+
 const ACTION_STYLE: Record<ActionType, { label: string; color: string; icon: JSX.Element }> = {
   upload:   { label: "Upload",   color: "bg-blue-500/10 text-blue-400 border-blue-500/20",     icon: <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/></svg> },
   download: { label: "Download", color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20", icon: <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg> },
@@ -57,13 +58,52 @@ const ALL_ACTIONS: ActionType[] = ["upload", "download", "share", "delete", "ai"
 const Content = () => {
   const [filterAction, setFilterAction] = useState<ActionType | "all">("all");
   const [search, setSearch] = useState("");
+  const [activity, setActivity] = useState<ActivityEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const filtered = LOGS.filter((log) => {
-    const matchAction = filterAction === "all" || log.action === filterAction;
+  useEffect(() => {
+    const loadActivity = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const response = await authFetch("/api/activity");
+        if (!response.ok) {
+          const data = await response.json().catch(() => null);
+          throw new Error(data?.error || "Failed to load activity logs.");
+        }
+
+        const data = (await response.json()) as { activity: ActivityEntry[] };
+        setActivity(data.activity ?? []);
+      } catch (caught) {
+        setError(caught instanceof Error ? caught.message : "Failed to load activity logs.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadActivity();
+  }, []);
+
+  const stats = useMemo(
+    () =>
+      ALL_ACTIONS.reduce((acc, action) => {
+        acc[action] = activity.filter((entry) => entry.action.toLowerCase() === action).length;
+        return acc;
+      }, {} as Record<ActionType, number>),
+    [activity]
+  );
+
+  const filtered = activity.filter((log) => {
+    const actionKey = (log.action ?? "access").toLowerCase() as ActionType;
+    const fileName = log.file?.name ?? "";
+    const projectName = log.file?.project?.name ?? "";
+    const matchAction = filterAction === "all" || actionKey === filterAction;
     const matchSearch =
-      log.file.toLowerCase().includes(search.toLowerCase()) ||
-      log.user.name.toLowerCase().includes(search.toLowerCase()) ||
-      log.project.toLowerCase().includes(search.toLowerCase());
+      fileName.toLowerCase().includes(search.toLowerCase()) ||
+      projectName.toLowerCase().includes(search.toLowerCase()) ||
+      log.description.toLowerCase().includes(search.toLowerCase());
     return matchAction && matchSearch;
   });
 
@@ -99,7 +139,7 @@ const Content = () => {
         {/* Stats */}
         <div className="grid grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
           {ALL_ACTIONS.map((action) => {
-            const count = LOGS.filter((l) => l.action === action).length;
+            const count = stats[action];
             const style = ACTION_STYLE[action];
             return (
               <button
@@ -175,41 +215,38 @@ const Content = () => {
             </div>
           ) : (
             filtered.map((log) => {
-              const style = ACTION_STYLE[log.action];
+              const actionKey = (log.action ?? "access").toLowerCase() as ActionType;
+              const style = ACTION_STYLE[actionKey] ?? ACTION_STYLE.access;
+              const fileName = log.file?.name ?? "Unknown file";
+              const projectName = log.file?.project?.name ?? "Unknown project";
               return (
                 <div key={log.id} className="grid grid-cols-[180px_2fr_140px_120px_100px_100px] gap-3 items-center px-5 py-3 hover:bg-white/3 border-b border-white/4 last:border-0 transition-colors group">
-                  {/* User */}
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className={`w-7 h-7 rounded-full ${log.user.color} flex items-center justify-center text-[10px] font-bold text-white shrink-0`}>
-                      {log.user.initials}
+                    <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white shrink-0">
+                      Y
                     </div>
-                    <span className="text-xs text-white/60 truncate">{log.user.name}</span>
+                    <span className="text-xs text-white/60 truncate">You</span>
                   </div>
 
-                  {/* File */}
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className={`w-6 h-6 rounded-md flex items-center justify-center text-[9px] font-bold shrink-0 ${FILE_ICON[log.fileType] ?? "bg-white/10 text-white/40"}`}>
-                      {log.fileType}
+                    <div className={`w-6 h-6 rounded-md flex items-center justify-center text-[9px] font-bold shrink-0 ${FILE_ICON[String(log.file?.type ?? "SQL").toUpperCase()] ?? "bg-white/10 text-white/40"}`}>
+                      {String(log.file?.type ?? "SQL").toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <div className="text-xs font-medium text-white/70 truncate group-hover:text-white/90 transition-colors">{log.file}</div>
-                      <div className="text-[10px] text-white/28 truncate">{log.project}</div>
+                      <div className="text-xs font-medium text-white/70 truncate group-hover:text-white/90 transition-colors">{fileName}</div>
+                      <div className="text-[10px] text-white/28 truncate">{projectName}</div>
                     </div>
                   </div>
 
-                  {/* Action */}
                   <div className={`inline-flex items-center gap-1.5 text-[10px] font-medium border rounded-full px-2 py-1 w-fit ${style.color}`}>
                     {style.icon}
                     {style.label}
                   </div>
 
-                  {/* Time */}
-                  <span className="text-[11px] text-white/30">{log.time}</span>
+                  <span className="text-[11px] text-white/30">{getRelativeTime(log.createdAt)}</span>
 
-                  {/* IP */}
-                  <span className="text-[10px] text-white/22 font-mono">{log.ip}</span>
+                  <span className="text-[10px] text-white/22 font-mono">{log.ipAddress ?? "—"}</span>
 
-                  {/* Empty action col */}
                   <div />
                 </div>
               );

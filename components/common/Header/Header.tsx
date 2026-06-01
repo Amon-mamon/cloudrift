@@ -1,17 +1,93 @@
 "use client";
 
 import { CustomButton } from "@/components/reusable/button/CustomButton";
-import Link from "next/link";
-import { useState } from "react";
+import { supabase } from "@/lib/supabase";
+import CallSecureExample from "@/components/auth/CallSecureExample";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
-const MOCK_USER = {
-  name: "Juan dela Cruz",
-  email: "juan@email.com",
-  avatar: "JD",
+type HeaderUser = {
+  name: string;
+  email: string;
+  avatar: string;
 };
 
+const fallbackUser: HeaderUser = {
+  name: "User",
+  email: "",
+  avatar: "U",
+};
+
+function getInitials(name: string, email: string) {
+  const source = name !== "User" ? name : email;
+  const initials = source
+    .split(/[\s@._-]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+
+  return initials || "U";
+}
+
+function getDisplayUser(user?: {
+  email?: string;
+  user_metadata?: Record<string, unknown>;
+}): HeaderUser {
+  if (!user) return fallbackUser;
+
+  const firstName =
+    typeof user.user_metadata?.first_name === "string"
+      ? user.user_metadata.first_name
+      : "";
+  const lastName =
+    typeof user.user_metadata?.last_name === "string"
+      ? user.user_metadata.last_name
+      : "";
+  const metadataName =
+    typeof user.user_metadata?.name === "string" ? user.user_metadata.name : "";
+  const email = user.email ?? "";
+  const name = [firstName, lastName].filter(Boolean).join(" ") || metadataName || email || "User";
+
+  return {
+    name,
+    email,
+    avatar: getInitials(name, email),
+  };
+}
+
 const Header = () => {
+  const router = useRouter();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<HeaderUser>(fallbackUser);
+  const [devPanelOpen, setDevPanelOpen] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadUser() {
+      const { data } = await supabase.auth.getUser();
+      if (mounted) setCurrentUser(getDisplayUser(data.user ?? undefined));
+    }
+
+    loadUser();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setCurrentUser(getDisplayUser(session?.user));
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  async function handleSignOut() {
+    await supabase.auth.signOut();
+    router.replace("/auth/login");
+  }
 
   return (
     <div className="fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-10 py-5 bg-[#070b14]/80 backdrop-blur-xl border-b border-white/[0.07]">
@@ -27,6 +103,21 @@ const Header = () => {
 
       {/* Right side */}
       <div className="flex items-center gap-3">
+        {process.env.NODE_ENV !== "production" && (
+          <div className="flex items-center">
+            <button
+              onClick={() => setDevPanelOpen((s) => !s)}
+              className="text-xs px-3 py-1 rounded-md bg-white/3 hover:bg-white/6 text-white/60 mr-2"
+            >
+              Dev Test
+            </button>
+            {devPanelOpen && (
+              <div className="bg-[#0f1623] p-2 rounded-md border border-white/6">
+                <CallSecureExample />
+              </div>
+            )}
+          </div>
+        )}
         {/* Notification */}
         <CustomButton tooltip="Notification" className="relative w-9 h-9 flex items-center justify-center rounded-xl bg-white/3 hover:bg-white/6 border border-white/[0.07] hover:border-white/12 text-white/35 hover:text-white/60 transition-all">
           <svg
@@ -73,10 +164,10 @@ const Header = () => {
             className="flex items-center gap-2.5 bg-white/3 hover:bg-white/6 border border-white/[0.07] hover:border-white/12 rounded-xl px-3 py-2 transition-all"
           >
             <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white shrink-0">
-              {MOCK_USER.avatar}
+              {currentUser.avatar}
             </div>
             <span className="hidden sm:block text-xs font-medium text-white/60 max-w-25 truncate">
-              {MOCK_USER.name}
+              {currentUser.name}
             </span>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -106,14 +197,14 @@ const Header = () => {
                 <div className="px-4 py-3.5 border-b border-white/[0.07]">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold text-white shrink-0">
-                      {MOCK_USER.avatar}
+                      {currentUser.avatar}
                     </div>
                     <div className="min-w-0">
                       <div className="text-xs font-medium text-white/80 truncate">
-                        {MOCK_USER.name}
+                        {currentUser.name}
                       </div>
                       <div className="text-[10px] text-white/35 truncate">
-                        {MOCK_USER.email}
+                        {currentUser.email}
                       </div>
                     </div>
                   </div>
@@ -193,7 +284,11 @@ const Header = () => {
                 </div>
 
                 <div className="border-t border-white/[0.07] py-1.5">
-                  <Link href="/auth/login" className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/6 transition-colors text-left">
+                  <button
+                    type="button"
+                    onClick={handleSignOut}
+                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/6 transition-colors text-left"
+                  >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="13"
@@ -210,7 +305,7 @@ const Header = () => {
                       <line x1="21" x2="9" y1="12" y2="12" />
                     </svg>
                     Sign out
-                  </Link>
+                  </button>
                 </div>
               </div>
             </>
