@@ -8,7 +8,7 @@ export async function GET(request: Request) {
     const [projectCount, fileCount, sharedWithMeCount, aiAnalyzedCount, storage, recentFiles] =
     await Promise.all([
       prisma.project.count({ where: { ownerId: authUser.id } }),
-      prisma.dbFile.count({ where: { ownerId: authUser.id } }),
+      prisma.dbFile.count({ where: { ownerId: authUser.id, isDeleted: false } }),
       prisma.fileShare.count({
         where: {
           OR: [
@@ -18,14 +18,14 @@ export async function GET(request: Request) {
         },
       }),
       prisma.dbFile.count({
-        where: { ownerId: authUser.id, aiAnalyzed: true },
+        where: { ownerId: authUser.id, aiAnalyzed: true, isDeleted: false },
       }),
       prisma.dbFile.aggregate({
-        where: { ownerId: authUser.id },
+        where: { ownerId: authUser.id, isDeleted: false },
         _sum: { sizeBytes: true },
       }),
       prisma.dbFile.findMany({
-        where: { ownerId: authUser.id },
+        where: { ownerId: authUser.id, isDeleted: false },
         include: { project: true },
         orderBy: { updatedAt: "desc" },
         take: 5,

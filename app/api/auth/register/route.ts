@@ -34,6 +34,7 @@ export async function POST(request: Request) {
     email,
     password,
     options: {
+      emailRedirectTo:`${process.env.NEXT_PUBLIC_BASE_URL}/auth/confirmed`,
       data: {
         first_name,
         last_name,

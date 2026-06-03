@@ -59,7 +59,7 @@ const Register = () => {
         throw new Error(result.error || "Registration failed. Please try again.");
       }
 
-      router.push("/auth/login");
+      router.push(`/auth/verify-email?email=${encodeURIComponent(data.email)}`);
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "Registration failed.");
     } finally {

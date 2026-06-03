@@ -16,7 +16,7 @@ export async function GET(request: Request) {
       where: { ownerId: authUser.id },
       include: {
         files: {
-          where: { ownerId: authUser.id },
+          where: { ownerId: authUser.id, isDeleted: false },
           orderBy: { updatedAt: "desc" },
         },
       },
@@ -37,7 +37,14 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-
+      console.log("authUser.id =", authUser.id);
+      const user = await prisma.user.findUnique({
+        where: {
+          id: authUser.id,
+        },
+      });
+    console.log("user =", user);
+   
     const project = await prisma.project.create({
       data: {
         ownerId: authUser.id,
@@ -46,6 +53,8 @@ export async function POST(request: Request) {
         color: parsed.data.color,
       },
     });
+
+   
 
     return NextResponse.json({ project }, { status: 201 });
   });

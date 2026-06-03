@@ -4,7 +4,7 @@ import { JSX, useEffect, useMemo, useState } from "react";
 import { authFetch } from "@/lib/auth-fetch";
 
 // ─── Types ────────────────────────────────────────────────
-type ActionType = "upload" | "download" | "share" | "delete" | "ai" | "access";
+type ActionType = "upload" | "download" | "share" | "delete" | "update" | "ai" | "access";
 
 type ActivityEntry = {
   id: string;
@@ -13,6 +13,7 @@ type ActivityEntry = {
   createdAt: string;
   ipAddress?: string | null;
   file?: {
+    id?: string;
     name: string;
     type: string;
     project?: { name: string } | null;
@@ -40,6 +41,7 @@ const ACTION_STYLE: Record<ActionType, { label: string; color: string; icon: JSX
   download: { label: "Download", color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20", icon: <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg> },
   share:    { label: "Share",    color: "bg-violet-500/10 text-violet-400 border-violet-500/20",   icon: <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg> },
   delete:   { label: "Delete",   color: "bg-red-500/10 text-red-400 border-red-500/20",           icon: <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg> },
+  update:   { label: "Restore",  color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20", icon: <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 9-9V1l4 4-4 4V5a7 7 0 1 0 7 7h-2"/><path d="M13 19l-4 4 4 4"/></svg> },
   ai:       { label: "AI Tool",  color: "bg-amber-500/10 text-amber-400 border-amber-500/20",     icon: <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg> },
   access:   { label: "Access",   color: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",        icon: <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg> },
 };
@@ -52,7 +54,7 @@ const FILE_ICON: Record<string, string> = {
   SQLITE: "bg-cyan-500/10 text-cyan-400",
 };
 
-const ALL_ACTIONS: ActionType[] = ["upload", "download", "share", "delete", "ai", "access"];
+const ALL_ACTIONS: ActionType[] = ["upload", "download", "share", "delete", "update", "ai", "access"];
 
 // ─── Component ────────────────────────────────────────────
 const Content = () => {
@@ -60,31 +62,56 @@ const Content = () => {
   const [search, setSearch] = useState("");
   const [activity, setActivity] = useState<ActivityEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRestoring, setIsRestoring] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const loadActivity = async () => {
-      setIsLoading(true);
-      setError(null);
+  const loadActivity = async () => {
+    setIsLoading(true);
+    setError(null);
 
-      try {
-        const response = await authFetch("/api/activity");
-        if (!response.ok) {
-          const data = await response.json().catch(() => null);
-          throw new Error(data?.error || "Failed to load activity logs.");
-        }
-
-        const data = (await response.json()) as { activity: ActivityEntry[] };
-        setActivity(data.activity ?? []);
-      } catch (caught) {
-        setError(caught instanceof Error ? caught.message : "Failed to load activity logs.");
-      } finally {
-        setIsLoading(false);
+    try {
+      const response = await authFetch("/api/activity");
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.error || "Failed to load activity logs.");
       }
-    };
 
+      const data = (await response.json()) as { activity: ActivityEntry[] };
+      setActivity(data.activity ?? []);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Failed to load activity logs.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     loadActivity();
   }, []);
+
+  const handleRestore = async (fileId: string) => {
+    setIsRestoring(fileId);
+    setError(null);
+
+    try {
+      const response = await authFetch("/api/files", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fileId }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.error || "Failed to restore file.");
+      }
+
+      await loadActivity();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Failed to restore file.");
+    } finally {
+      setIsRestoring(null);
+    }
+  };
 
   const stats = useMemo(
     () =>
@@ -247,7 +274,20 @@ const Content = () => {
 
                   <span className="text-[10px] text-white/22 font-mono">{log.ipAddress ?? "—"}</span>
 
-                  <div />
+                  <div className="flex justify-end">
+                    {actionKey === "delete" && log.file?.name ? (
+                      <button
+                        type="button"
+                        disabled={isRestoring === log.file.id}
+                        onClick={() => handleRestore(log.file?.id ?? "")}
+                        className="text-[10px] font-medium text-emerald-300 hover:text-emerald-100 transition-colors disabled:text-white/25 disabled:cursor-not-allowed"
+                      >
+                        {isRestoring === log.file.id ? "Restoring…" : "Restore"}
+                      </button>
+                    ) : (
+                      <span className="text-[10px] text-white/30">{actionKey === "delete" ? "Unavailable" : ""}</span>
+                    )}
+                  </div>
                 </div>
               );
             })

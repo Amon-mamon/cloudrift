@@ -58,6 +58,7 @@ export async function POST(request: Request) {
     where: {
       id: parsed.data.fileId,
       ownerId: authUser.id,
+      isDeleted: false,
     },
   });
 
