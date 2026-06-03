@@ -49,10 +49,11 @@ enum ActivityAction {
   DOWNLOAD
   SHARE
   DELETE
+  RESTORE
   AI
   ACCESS
   CREATE
-  UPDATE
+  UPDATE 
 }
 
 model Project {
