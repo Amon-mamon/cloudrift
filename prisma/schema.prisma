@@ -38,7 +38,7 @@ enum DbFileType {
   SQLITE
   OTHER
 }
-
+ 
 enum FileSharePermission {
   FULL_ACCESS
   READ_ONLY
