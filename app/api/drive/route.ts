@@ -1,14 +1,9 @@
+// app/api/drive/route.ts
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { withAuthenticatedUser } from "@/lib/auth";
 import { serializeForJson } from "@/lib/serialize";
-
-const createProjectSchema = z.object({
-  name: z.string().min(1, "Project name is required"),
-  engine: z.string().optional(),
-  color: z.string().optional(),
-});
+import { ActivityAction } from "@/lib/generated/prisma/enums";
 
 export async function GET(request: Request) {
   return withAuthenticatedUser(request, async (authUser) => {
@@ -16,46 +11,42 @@ export async function GET(request: Request) {
       where: { ownerId: authUser.id },
       include: {
         files: {
-          where: { ownerId: authUser.id, isDeleted: false },
-          orderBy: { updatedAt: "desc" },
+          where: { isDeleted: false },
+          orderBy: { createdAt: "desc" },
         },
       },
       orderBy: { updatedAt: "desc" },
     });
-
     return NextResponse.json(serializeForJson({ projects }));
   });
 }
 
 export async function POST(request: Request) {
-  return withAuthenticatedUser(request, async (authUser) => {
-    const parsed = createProjectSchema.safeParse(await request.json());
+  return withAuthenticatedUser(request, async (authUser) => {  // ← fixed: removed stray `t`
+    const body = await request.json();
+    const { name, engine, color } = body;
 
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid project data", details: parsed.error.format() },
-        { status: 400 }
-      );
+    if (!name?.trim()) {
+      return NextResponse.json({ error: "Project name is required" }, { status: 400 });
     }
-      console.log("authUser.id =", authUser.id);
-      const user = await prisma.user.findUnique({
-        where: {
-          id: authUser.id,
-        },
-      });
-    console.log("user =", user);
-   
+
     const project = await prisma.project.create({
       data: {
         ownerId: authUser.id,
-        name: parsed.data.name,
-        engine: parsed.data.engine,
-        color: parsed.data.color,
+        name: name.trim(),
+        engine: engine ?? null,
+        color: color ?? null,
       },
     });
 
-   
+    await prisma.activityLog.create({
+      data: {
+        ownerId: authUser.id,
+        action: ActivityAction.CREATE,
+        description: `Created project ${project.name}`,
+      },
+    });
 
-    return NextResponse.json({ project }, { status: 201 });
+    return NextResponse.json(serializeForJson({ project }), { status: 201 });
   });
 }

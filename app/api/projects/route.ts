@@ -17,41 +17,33 @@ const createFileSchema = z.object({
 export async function PATCH(request: Request) {
   return withAuthenticatedUser(request, async (authUser) => {
     const body = await request.json();
-    const fileId = typeof body.fileId === "string" ? body.fileId : null;
 
-    if (!fileId) {
+    const projectId =
+      typeof body.projectId === "string"
+        ? body.projectId
+        : null;
+
+    if (!projectId) {
       return NextResponse.json(
-        { error: "Missing fileId" },
+        { error: "Missing projectId" },
         { status: 400 }
       );
     }
 
-    const file = await prisma.dbFile.findFirst({
-      where: {
-        id: fileId,
-        ownerId: authUser.id,
-        isDeleted: true,
+    // restore project
+    await prisma.project.update({
+      where: { id: projectId },
+      data: {
+        isDeleted: false,
+        deletedAt: null,
       },
     });
 
-    if (!file) {
-      return NextResponse.json(
-        { error: "File not found or not deleted" },
-        { status: 404 }
-      );
-    }
-    
-    await prisma.project.update({
-      where :{id: file.projectId ?? ""},
-      data: {
-        updatedAt: new Date(),
-      },
-    })
-
-    // Restore file
-    await prisma.dbFile.update({
+    // restore files
+    await prisma.dbFile.updateMany({
       where: {
-        id: fileId,
+        projectId,
+        ownerId: authUser.id,
       },
       data: {
         isDeleted: false,
@@ -59,34 +51,17 @@ export async function PATCH(request: Request) {
       },
     });
 
-    // Find latest delete log for this file
-    const deleteLog = await prisma.activityLog.findFirst({
-      where: {
+    await prisma.activityLog.create({
+      data: {
         ownerId: authUser.id,
-        fileId,
-        action: ActivityAction.DELETE,
-      },
-      orderBy: {
-        createdAt: "desc",
+        projectId,
+        action: ActivityAction.RESTORE,
+        description: "Restored folder",
       },
     });
 
-    if (deleteLog) {
-      await prisma.activityLog.update({
-        where: {
-          id: deleteLog.id,
-        },
-        data: {
-          // Change to ActivityAction.RESTORE if you add that enum
-          action: ActivityAction.UPDATE,
-          description: `Restored file ${file.name}`,
-        },
-      });
-    }
-
     return NextResponse.json({
       ok: true,
-      message: "File restored successfully",
     });
   });
 }

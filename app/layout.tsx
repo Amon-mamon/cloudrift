@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import {Syne , Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "@/components/ui/sonner";
 
 const syne = Syne({
   subsets: ["latin"],
@@ -33,7 +34,10 @@ export default function RootLayout({
       lang="en"
       className={`${syne.variable} ${syne.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <Toaster position="top-right" />
+      </body>
     </html>
   );
 }

@@ -6,17 +6,22 @@ import { serializeForJson } from "@/lib/serialize";
 export async function GET(request: Request) {
   return withAuthenticatedUser(request, async (authUser) => {
     const activity = await prisma.activityLog.findMany({
-      where: { ownerId: authUser.id },
+  where: {
+    ownerId: authUser.id,
+  },
+  include: {
+    file: {
       include: {
-        file: {
-          include: {
-            project: true,
-          },
-        },
+        project: true,
       },
-      orderBy: { createdAt: "desc" },
-      take: 100,
-    });
+    },
+    project: true,
+  },
+  orderBy: {
+    createdAt: "desc",
+  },
+  take: 100,
+});
 
     return NextResponse.json(serializeForJson({ activity }));
   });

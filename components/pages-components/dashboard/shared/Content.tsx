@@ -375,7 +375,7 @@ const Content = () => {
         <div className="absolute inset-0" style={{ backgroundImage: "linear-gradient(rgba(56,138,221,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(56,138,221,0.05) 1px, transparent 1px)", backgroundSize: "48px 48px" }} />
       </div>
 
-      <div className="relative z-10 p-8 w-full max-w-6xl">
+      <div className="relative z-10 p-8 w-full">
 
         {/* Header */}
         <div className="flex items-start justify-between mb-8">

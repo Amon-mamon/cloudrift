@@ -1,12 +1,12 @@
-import Image from 'next/image'
+import Image from "next/image";
 
 import { CustomButton } from "@/components/reusable/button/CustomButton";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import dynamic from 'next/dynamic';
+import dynamic from "next/dynamic";
 const NAV_LINKS = ["Features", "Pricing", "About"];
 
-const MuiTooltip = dynamic(() => import("@mui/material/Tooltip"))
+const MuiTooltip = dynamic(() => import("@mui/material/Tooltip"));
 
 const FEATURES = [
   {
@@ -199,9 +199,9 @@ const Content = () => {
           style={{ fontFamily: "'Syne', sans-serif" }}
         >
           <MuiTooltip title="Logo">
-            <span className='flex items-center gap-1'>
-              <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse inline-block"/>
-                CloudRift
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse inline-block" />
+              CloudRift
             </span>
           </MuiTooltip>
         </div>
@@ -217,16 +217,27 @@ const Content = () => {
             </li>
           ))}
         </ul>
+        <div className="flex gap-3">
           <MuiTooltip title="Sign Up">
-            <Link href="/auth/register"
+            <Link
+              href="/auth/login"
               onClick={() => setIsOpen(true)}
               className="bg-blue-600 hover:bg-blue-500 transition-colors text-white text-sm font-medium px-5 py-2 rounded-lg"
             >
-              Sign up free
+              Login
             </Link>
           </MuiTooltip>
+          <MuiTooltip title="Sign Up">
+            <Link
+              href="/auth/register"
+              onClick={() => setIsOpen(true)}
+              className="bg-blue-600 hover:bg-blue-500 transition-colors text-white text-sm font-medium px-5 py-2 rounded-lg"
+            >
+              Sign up
+            </Link>
+          </MuiTooltip>
+        </div>
       </nav>
-
       {/* Hero */}
       <section className="relative z-10 flex flex-col items-center text-center px-6 pt-20 pb-12">
         {/* Badge */}
@@ -264,7 +275,10 @@ const Content = () => {
 
         {/* CTAs */}
         <div className="flex flex-wrap gap-3 justify-center mb-14">
-          <CustomButton tooltip="Get Started" className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 transition-all hover:-translate-y-0.5 text-white font-medium px-7 py-3.5 rounded-xl text-sm">
+          <Link
+            href="/auth/login"
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 transition-all hover:-translate-y-0.5 text-white font-medium px-7 py-3.5 rounded-xl text-sm"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="16"
@@ -281,8 +295,11 @@ const Content = () => {
               <path d="m16 16-4-4-4 4" />
             </svg>
             Get started free
-          </CustomButton>
-          <CustomButton tooltip="Watch Demo" className="flex items-center gap-2 bg-transparent border border-white/15 hover:border-white/30 text-white/70 hover:text-white transition-all hover:-translate-y-0.5 font-normal px-7 py-3.5 rounded-xl text-sm">
+          </Link>
+          <CustomButton
+            tooltip="Watch Demo"
+            className="flex items-center gap-2 bg-transparent border border-white/15 hover:border-white/30 text-white/70 hover:text-white transition-all hover:-translate-y-0.5 font-normal px-7 py-3.5 rounded-xl text-sm"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="16"
@@ -427,7 +444,7 @@ const Content = () => {
           ))}
         </div>
       </section>
-        {/* <Register open={isOpen} onClose={() => setIsOpen(false)} /> */}
+      {/* <Register open={isOpen} onClose={() => setIsOpen(false)} /> */}
     </div>
   );
 };

@@ -3,6 +3,7 @@
 import { JSX, useEffect, useMemo, useState } from "react";
 import { authFetch } from "@/lib/auth-fetch";
 
+
 // ─── Types ────────────────────────────────────────────────
 type ActionType =
   | "upload"
@@ -19,6 +20,7 @@ type ActivityEntry = {
   description: string;
   createdAt: string;
   ipAddress?: string | null;
+
   file?: {
     id?: string;
     name: string;
@@ -26,6 +28,13 @@ type ActivityEntry = {
     project?: { name: string } | null;
     aiAnalyzed: boolean;
     sizeBytes?: string | number | null;
+    isDeleted: boolean;
+  } | null;
+
+  project?: {
+    id?: string;
+    name: string;
+    isDeleted: boolean;
   } | null;
 };
 
@@ -290,6 +299,37 @@ const Content = () => {
     }
   };
 
+  const handleRestoreFolder = async (projectId: string) => {
+    setIsRestoring(projectId);
+    setError(null);
+
+    try {
+      const response = await authFetch("/api/projects/", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          projectId,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+
+        throw new Error(data?.error || "Failed to restore folder.");
+      }
+      window.alert("Folder Restored Successfully");
+      await loadActivity();
+    } catch (caught) {
+      setError(
+        caught instanceof Error ? caught.message : "Failed to restore folder.",
+      );
+    } finally {
+      setIsRestoring(null);
+    }
+  };
+
   const stats = useMemo(
     () =>
       ALL_ACTIONS.reduce(
@@ -306,8 +346,12 @@ const Content = () => {
 
   const filtered = activity.filter((log) => {
     const actionKey = (log.action ?? "access").toLowerCase() as ActionType;
-    const fileName = log.file?.name ?? "";
-    const projectName = log.file?.project?.name ?? "";
+    const fileName =
+  log.file?.name ??
+  log.project?.name ??
+  log.description;
+    const projectName =
+      log.file?.project?.name ?? (log.project ? "Folder" : "Unknown project");
     const matchAction = filterAction === "all" || actionKey === filterAction;
     const matchSearch =
       fileName.toLowerCase().includes(search.toLowerCase()) ||
@@ -553,20 +597,35 @@ const Content = () => {
                   </span>
 
                   <div className="flex justify-end">
-                    {actionKey === "delete" && log.file?.name ? (
-                      <button
-                        type="button"
-                        disabled={isRestoring === log.file.id}
-                        onClick={() => handleRestore(log.file?.id ?? "")}
-                        className="text-[10px] font-medium text-emerald-300 hover:text-emerald-100 transition-colors disabled:text-white/25 disabled:cursor-not-allowed"
-                      >
-                        {isRestoring === log.file.id ? "Restoring…" : "Restore"}
-                      </button>
-                    ) : (
-                      <span className="text-[10px] text-white/30">
-                        {actionKey === "delete" ? "Unavailable" : ""}
-                      </span>
-                    )}
+                    {actionKey === "delete" ? (
+                      log.file?.id && log.file?.isDeleted ? (
+                        <button
+                          type="button"
+                          disabled={isRestoring === log.file.id}
+                          onClick={() => handleRestore(log.file?.id ?? "")}
+                          className="text-[10px] font-medium text-emerald-300 hover:text-emerald-100 transition-colors disabled:text-white/25 disabled:cursor-not-allowed"
+                        >
+                          {isRestoring === log.file.id
+                            ? "Restoring…"
+                            : "Restore File"}
+                        </button>
+                      ) : log.project?.id && log.project?.isDeleted ? (
+                        <button
+                          type="button"
+                          disabled={isRestoring === log.project.id}
+                          onClick={() => handleRestoreFolder(log.project?.id ?? "")}
+                          className="text-[10px] font-medium text-blue-300 hover:text-blue-100 transition-colors disabled:text-white/25 disabled:cursor-not-allowed"
+                        >
+                          {isRestoring === log.project.id
+                            ? "Restoring…"
+                            : "Restore Folder"}
+                        </button>
+                      ) : (
+                        <span className="text-[10px] text-white/30">
+                          Restored
+                        </span>
+                      )
+                    ) : null}
                   </div>
                 </div>
               );
@@ -590,7 +649,7 @@ const Content = () => {
       px-3 py-2
       text-xs
       text-gray-600
-     
+
       outline-none
       focus:border-blue-500/30
       focus:bg-white/5

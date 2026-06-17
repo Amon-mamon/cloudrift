@@ -21,11 +21,11 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  projects     Project[]
-  files        DbFile[]
-  activityLogs ActivityLog[]
-  ownedShares  FileShare[]   @relation("OwnedFileShares")
-  receivedShares FileShare[] @relation("ReceivedFileShares")
+  projects       Project[]
+  files          DbFile[]
+  activityLogs   ActivityLog[]
+  ownedShares    FileShare[]   @relation("OwnedFileShares")
+  receivedShares FileShare[]   @relation("ReceivedFileShares")
 }
 
 enum DbFileType {
@@ -38,7 +38,7 @@ enum DbFileType {
   SQLITE
   OTHER
 }
- 
+
 enum FileSharePermission {
   FULL_ACCESS
   READ_ONLY
@@ -53,40 +53,43 @@ enum ActivityAction {
   AI
   ACCESS
   CREATE
-  UPDATE 
+  UPDATE
 }
 
 model Project {
-  id        String   @id @default(uuid()) @db.Uuid
-  ownerId   String   @db.Uuid
-  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  id        String    @id @default(uuid()) @db.Uuid
+  ownerId   String    @db.Uuid
+  owner     User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   name      String
   engine    String?
   color     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  updatedAt DateTime  @updatedAt
 
-  files DbFile[]
+  activityLogs ActivityLog[]
+  files        DbFile[]
 
   @@index([ownerId])
 }
 
 model DbFile {
-  id         String     @id @default(uuid()) @db.Uuid
-  ownerId    String     @db.Uuid
-  owner      User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  projectId  String?    @db.Uuid
-  project    Project?   @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  name       String
-  type       DbFileType @default(OTHER)
-  sizeBytes  BigInt?
-  engine     String?
-  aiAnalyzed Boolean    @default(false)
+  id          String     @id @default(uuid()) @db.Uuid
+  ownerId     String     @db.Uuid
+  owner       User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  projectId   String?    @db.Uuid
+  project     Project?   @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  name        String
+  type        DbFileType @default(OTHER)
+  sizeBytes   BigInt?
+  engine      String?
+  aiAnalyzed  Boolean    @default(false)
   storagePath String?
-  isDeleted  Boolean    @default(false)
-  deletedAt  DateTime?
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+  isDeleted   Boolean    @default(false)
+  deletedAt   DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 
   shares       FileShare[]
   activityLogs ActivityLog[]
@@ -107,9 +110,9 @@ model FileShare {
   permission       FileSharePermission @default(READ_ONLY)
   createdAt        DateTime            @default(now())
 
+  @@unique([fileId, sharedWithEmail])
   @@index([ownerId])
   @@index([sharedWithUserId])
-  @@unique([fileId, sharedWithEmail])
 }
 
 model ActivityLog {
@@ -118,10 +121,13 @@ model ActivityLog {
   owner       User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   fileId      String?        @db.Uuid
   file        DbFile?        @relation(fields: [fileId], references: [id], onDelete: SetNull)
+  projectId   String?        @db.Uuid
+  project     Project?       @relation(fields: [projectId], references: [id], onDelete: SetNull)
   action      ActivityAction
   description String
   ipAddress   String?
   createdAt   DateTime       @default(now())
+  projectName String?
 
   @@index([ownerId])
   @@index([fileId])
